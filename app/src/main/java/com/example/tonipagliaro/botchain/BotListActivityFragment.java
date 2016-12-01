@@ -46,8 +46,7 @@ public class BotListActivityFragment extends Fragment {
 
         ArrayAdapter<String> adapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item,R.id.list_bot_textview,listBots);
 
-        //   TextView tw=(TextView) rootView.findViewById(R.id.list_bot_textview);
-        // tw.setBackgroundColor(Color.GREEN);
+
 
         ListView listView=(ListView)rootView.findViewById(R.id.listView_bot);
 

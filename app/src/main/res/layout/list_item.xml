@@ -5,25 +5,28 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:padding="10dp"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:background="#000">
 
 
 
     <TextView android:id="@+id/list_bot_textview"
-        android:textColor="#000"
+        android:textColor="@android:color/holo_orange_light"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
         android:gravity="center_vertical"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="3dp"
+        android:layout_marginLeft="2dp"
         android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp" />
+        android:layout_marginBottom="5dp"
+        android:background="#000" />
 
     <ImageView android:id="@+id/txtTitle"
-        android:src="@drawable/red"
-        android:layout_width="36dp"
-        android:layout_height="78dp"
+        android:src="@drawable/green"
+        android:layout_width="30dp"
+        android:layout_height="60dp"
         android:gravity="center_vertical"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
