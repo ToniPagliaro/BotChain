@@ -1,10 +1,12 @@
 package com.example.tonipagliaro.botchain;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -22,7 +24,7 @@ public class BotListActivityFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_bot_list, container,false);
 
@@ -39,6 +41,18 @@ public class BotListActivityFragment extends Fragment {
         };
 
 
+        final String[] comandi = {
+               "DOS",
+                "uCCIDI pIROZZI",
+                "saluta giuseppe",
+                "DOS",
+                "uCCIDI pIROZZI",
+                "saluta giuseppe",
+                "DOS",
+                "uCCIDI pIROZZI",
+                "saluta giuseppe",
+        };
+
 
         List<String> listBots = new ArrayList<String>(Arrays.asList(bots));
 
@@ -53,6 +67,41 @@ public class BotListActivityFragment extends Fragment {
         View header = inflater.inflate(R.layout.header_list,container,false);
         listView.addHeaderView(header);
         listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                //ottenere l'indirizzo del bot selezionato
+
+                final Dialog dialog = new Dialog(getActivity());
+                dialog.setTitle("Seleziona comando");
+                View v=inflater.inflate(R.layout.popup_window,null,false);
+                dialog.setContentView(v);
+
+                List<String> listComandi = new ArrayList<String>(Arrays.asList(comandi));
+
+                ArrayAdapter<String> adapter=new ArrayAdapter<String>(getActivity(),R.layout.item_comandi,R.id.commandText,listComandi);
+                ListView listView=(ListView)v.findViewById(R.id.list_comandi);
+
+                listView.setAdapter(adapter);
+
+
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                        //selezione del comando da inviare al bot selezionato
+                        dialog.dismiss();
+                    }
+                });
+
+            dialog.show();
+
+
+            }
+        });
+
         return rootView;
     }
 }
