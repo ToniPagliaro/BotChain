@@ -15,6 +15,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        BotMaster botMaster=new BotMaster();
+        botMaster.init();
+
         Button b=(Button)findViewById(R.id.button);
 
         b.setOnClickListener(new View.OnClickListener() {
