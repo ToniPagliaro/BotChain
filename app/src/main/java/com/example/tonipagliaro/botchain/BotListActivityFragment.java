@@ -42,15 +42,17 @@ public class BotListActivityFragment extends Fragment {
 
 
         final String[] comandi = {
-               "DOS",
-                "uCCIDI pIROZZI",
-                "saluta giuseppe",
-                "DOS",
-                "uCCIDI pIROZZI",
-                "saluta giuseppe",
-                "DOS",
-                "uCCIDI pIROZZI",
-                "saluta giuseppe",
+                "Comando 1",
+                "Comando 2",
+                "Comando 3",
+                "Comando 4",
+                "Comando 5",
+                "Comando 6",
+                "Comando 7",
+                "Comando 8",
+                "Comando 9",
+                "Comando 10",
+
         };
 
 
