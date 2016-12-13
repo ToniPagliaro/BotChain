@@ -10,8 +10,11 @@
         android:layout_alignParentBottom="true"
         android:textStyle="bold"
         android:textSize="22dp"
-        android:textColor="#FFFFFF"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+
+
         android:padding="10dp"
         android:text="Lista Bot"
-        android:background="@color/primary_dark_material_dark" />
+        android:background="#fff"
+        android:textColor="#0361ff" />
 </LinearLayout>

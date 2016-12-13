@@ -6,12 +6,13 @@
     android:layout_height="fill_parent"
     android:padding="10dp"
     android:weightSum="1"
-    android:background="#000">
+    android:background="#fff">
 
 
 
     <TextView android:id="@+id/list_bot_textview"
-        android:textColor="@android:color/holo_orange_light"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="#0361ff"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
         android:gravity="center_vertical"
@@ -22,7 +23,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
 
-        android:background="#000" />
+        android:background="#ffff" />
 
     <ImageView android:id="@+id/txtTitle"
         android:src="@drawable/green"

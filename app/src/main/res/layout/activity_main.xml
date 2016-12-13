@@ -27,6 +27,7 @@
     <Button
         android:id="@+id/button"
         android:text="Lista Bot"
+        android:textColor="#fff"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_height="30sp"
         android:layout_width="30sp"
@@ -36,7 +37,8 @@
         android:layout_alignRight="@+id/imageView"
         android:layout_alignEnd="@+id/imageView"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:background="#0361ff" />
 
     <TextView
         android:layout_width="wrap_content"

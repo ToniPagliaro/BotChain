@@ -60,8 +60,8 @@ public class ApplicationState extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Address luca =new Address(params,"moGdMJ2oBeZLpuhhCdSaNStvjiidS6m25g");
-       Address peppe=new Address(params,"mmWoN5spSa1Fe2MRE9cYbiN2g6yPF3LwxV");
+        Address luca =new Address(params,"mz1wuR4xJftvgjpZDMJqrXx3hASY3z49xr");
+       Address peppe=new Address(params,"myBS9Nu24V5PKzKxCRpKYSpUEaKdcdUxTq");
         indirizzi.add(luca.toString());
         indirizzi.add(peppe.toString());
 

@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
                         broadcastList.add(toLuca);
                         broadcastList.add(toPeppe);
 
-                        sendCommand("ciao ktm", broadcastList);
+                        sendCommand("ping", broadcastList);
                         Intent intent = new Intent(MainActivity.this, BotListActivity.class);
 
                         startActivity(intent);
@@ -142,6 +142,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         }
+
+
+
 
 
         public  String sendCommand(String command, Address botAddress) throws Exception {
