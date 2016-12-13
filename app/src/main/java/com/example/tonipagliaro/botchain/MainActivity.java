@@ -3,7 +3,6 @@ package com.example.tonipagliaro.botchain;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -11,216 +10,55 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import org.bitcoinj.core.BlockChain;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.PeerGroup;
-import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.core.Address;
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.listeners.DownloadProgressTracker;
-import org.bitcoinj.net.discovery.DnsDiscovery;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.SPVBlockStore;
-import org.bitcoinj.wallet.UnreadableWalletException;
+import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Date;
-import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity {
 
-    /*   @Override
-       protected void onCreate(Bundle savedInstanceState) {
-           super.onCreate(savedInstanceState);
-           setContentView(R.layout.activity_main);
-
-
-           Button b=(Button)findViewById(R.id.button);
-
-           b.setOnClickListener(new View.OnClickListener() {
-               @Override
-               public void onClick(View v) {
-                   Intent i=new Intent(MainActivity.this,BotListActivity.class);
-                   startActivity(i);
-
-               }
-           });
-
-       }
-   */
-    NetworkParameters params;
-    String filePrefix;
-
-    // Mappa per la memorizzazione dei blocchi della clockchain
-    final TreeMap<Integer, StoredBlock> checkpoints = new TreeMap<Integer, StoredBlock>();
-
-    SPVBlockStore chainStore;
-    BlockChain chain;
-    PeerGroup peerGroup;
-    Wallet wallet;
-    DownloadProgressTracker downloadTracker;
+    ApplicationState appState;
 
     ProgressBar progressBar;
     TextView textView;
 
-    int progressBarStatus;
-
+    DownloadProgressTracker downloadTracker;
+    int progressBarStatus = 0;
     private Handler progressBarHandler = new Handler();
-
-    final static String PATH_DIR_MASTER = "MasterUltima";
-    final static String FILE_NAME_SPV = "forwarding-service-testnet.spvchain";
-    final static String FILE_NAME_WALLET = "forwarding-service-testnet.wallet";
-
-    File fileWALLET;
+     Address a;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        appState = (ApplicationState) getApplication();
+
+         a=new Address(appState.params,"mtuYPq2kuww1LtsZNTd5ZR1E6JZnsnS5t8");
+
         progressBar = (ProgressBar) this.findViewById(R.id.progressBar);
         textView = (TextView) this.findViewById(R.id.textView);
+        Log.d("App:balance prima della ricezione",appState.wallet.getBalance().toFriendlyString());
 
-        progressBarStatus = 0;
+        Log.d("App", "MainActivity");
+        appState.wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
+            @Override
+            public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+                Log.d("App: balance dopo la ricezione", appState.wallet.getBalance().toFriendlyString());
+                appState.saveWallet();
+                //trovare indirizzo del bot da transaction
 
-        params = TestNet3Params.get();
-        //params = MainNetParams.get();
-        filePrefix = "forwarding-service-testnet";
-
-        File mainDir = new File(Environment.getExternalStorageDirectory(), PATH_DIR_MASTER);
-        if (!mainDir.exists())
-            if (!mainDir.mkdir()) {
-                Toast.makeText(this, "Errore nella crezione della cartella", Toast.LENGTH_SHORT);
             }
-        File fileSPV = new File(Environment.getExternalStorageDirectory() + File.separator + PATH_DIR_MASTER, FILE_NAME_SPV);
+        });
 
-        fileWALLET = new File(Environment.getExternalStorageDirectory() + File.separator + PATH_DIR_MASTER, FILE_NAME_WALLET);
-        if (fileWALLET.exists())
-            try {
-                wallet = Wallet.loadFromFile(fileWALLET);
-            } catch (UnreadableWalletException e) {
-                e.printStackTrace();
-                Log.d("Error", "Errore nel caricamento del Wallet dal file");
-            }
-
-
-        try {
-            chainStore = new SPVBlockStore(params, fileSPV);
-            chain = new BlockChain(params, chainStore);
-            peerGroup = new PeerGroup(params, chain);
-            peerGroup.addPeerDiscovery(new DnsDiscovery(params));
-            wallet = new Wallet(params);
-
-            chain.addWallet(wallet);
-            peerGroup.addWallet(wallet);
-
-            long now = new Date().getTime() / 1000;
-            //final long oneMonthAgo = now - (86400 * 30);
-
-            peerGroup.setFastCatchupTimeSecs(now);
-
-
-            new Thread(new Runnable() {
-                public void run() {
-                    while (progressBarStatus < 100) {
-
-                        downloadTracker = new DownloadProgressTracker() {
-
-                            @Override
-                            protected void progress(double pct, int blocksSoFar, Date date) {
-                                progressBarStatus = (int) pct;
-                            }
-
-                            @Override
-                            public void doneDownload() {
-                                progressBarStatus = 100;
-                            }
-
-                        };
-
-                        // your computer is too fast, sleep 1 second
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        // Update the progress bar
-                        progressBarHandler.post(new Runnable() {
-                            public void run() {
-                                if (progressBarStatus >= 100) {
-                                    try {
-                                        wallet.saveToFile(fileWALLET);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        Log.d("Error", "Errore nel salvataggio del Wallet nel file");
-                                    }
-                                    progressBar.setProgress(progressBarStatus);
-
-                                    org.bitcoinj.core.Address sendToAddress = wallet.currentReceiveKey().toAddress(params);
-                                    String message = sendToAddress.toString();
-
-                                    //  textView.setText(message);
-
-                                    //inserimento del bottono per lista bot al termine del caricamento della blockchain
-                                    Button b=(Button)findViewById(R.id.button);
-                                    textView.setVisibility(View.INVISIBLE);
-                                    b.setVisibility(View.VISIBLE);
-
-                                    b.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            Intent i=new Intent(MainActivity.this,BotListActivity.class);
-                                            startActivity(i);
-
-                                        }
-                                    });
-
-
-                                } else {
-                                    progressBar.setProgress(progressBarStatus);
-                                    String perc = progressBarStatus + " %";
-                                    textView.setText(perc);
-                                }
-                            }
-                        });
-                    }
-
-                    // ok, file is downloaded,
-                    if (progressBarStatus >= 100) {
-
-                        // sleep 2 seconds, so that you can see the 100%
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        // close the progress bar dialog
-                        //progressBar.dismiss();
-                        //RICHIAMARE LA PROSSIMA ACTIVITY
-                    }
-                }
-            }).start();
-
-
-            //new ProgressTask().execute();
-            new DownloadBlockchain().execute();
-
-        } catch (BlockStoreException e) {
-            e.printStackTrace();
-            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+        new DownloadBlockchain().execute();
 
     }
 
@@ -228,19 +66,41 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Void... par) {
-            peerGroup.startAsync();
-            peerGroup.startBlockChainDownload(downloadTracker);
+            //PeerGroup peerGroup = new PeerGroup(appState.params, appState.chain);
+            //peerGroup.addPeerDiscovery(new DnsDiscovery(appState.params));
+            //peerGroup.addWallet(appState.wallet);
+            Log.d("App", "Scarico la blockchain");
 
+            appState.peerGroup.start();
+            appState.peerGroup.startBlockChainDownload(downloadTracker = new DownloadProgressTracker() {
+
+                @Override
+                protected void progress(double pct, int blocksSoFar, Date date) {
+                    publishProgress((int) pct);
+                }
+
+                @Override
+                public void doneDownload() {
+                    publishProgress(100);
+                }
+
+            });
+            //appState.downloadBlockchainFromPeers(downloadTracker);
             try {
                 downloadTracker.await();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                Log.e("App", "Errore durante il download della blockchain");
             }
-            peerGroup.stopAsync();
 
             return null;
         }
 
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            progressBar.setProgress(values[0]);
+            textView.setText(values[0] + " %");
+        }
 
         @Override
         protected void onPostExecute(String s) {
@@ -249,12 +109,57 @@ public class MainActivity extends AppCompatActivity {
                    RICHIAMARE LA PROSSIMA ACTIVITY (LISTA DEI BOT) QUI E PASSARLE L'OGGETTO WalletAppKit
                    Ma non so come fare...forse Content Provider???
              */
+            appState.saveWallet();
+
+            textView.setVisibility(View.INVISIBLE);
+
+            Button b=(Button)findViewById(R.id.button);
+            Log.d("App",appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
+            b.setVisibility(View.VISIBLE);
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                    sendCommand("ciao ktm",a);
+                    Intent intent = new Intent(MainActivity.this, BotListActivity.class);
+                        startActivity(intent);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            });
 
 
         }
 
 
+        public  String sendCommand(String command, Address botAddress) throws Exception {
+
+            byte[] hash = command.getBytes("UTF-8");
+
+            Transaction transaction = new Transaction(appState.wallet.getParams());
+
+            transaction.addOutput(Coin.MILLICOIN, botAddress);
+            transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
+
+            SendRequest sendRequest = SendRequest.forTx(transaction);
+
+            String string = new String(hash);
+            System.out.println("Sending ... " + string);
+
+            appState.wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
+
+            appState.peerGroup.setMaxConnections(1);
+            appState.peerGroup.broadcastTransaction(sendRequest.tx);
+
+            return transaction.getHashAsString();
+        }
+
+
     }
+
 
 
 }
