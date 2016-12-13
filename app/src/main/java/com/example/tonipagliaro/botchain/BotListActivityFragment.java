@@ -3,6 +3,7 @@ package com.example.tonipagliaro.botchain;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,8 @@ import java.util.List;
  * Created by Toni Pagliaro on 28/11/2016.
  */
 public class BotListActivityFragment extends Fragment {
+
+    ApplicationState appState;
     public BotListActivityFragment(){
 
     }
@@ -27,6 +30,19 @@ public class BotListActivityFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_bot_list, container,false);
+
+
+
+
+//        ArrayList<Address> indirizzi= (ArrayList<Address>) getArguments().getSerializable("listaBot");
+
+        BotListActivity activity=(BotListActivity)getActivity();
+        ArrayList<String> indirizzi=activity.getIndirizzi();
+
+       // ArrayList<String> indirizzi=getArguments().getStringArrayList("listaBot");
+        for(String a : indirizzi)
+            Log.e("Bot ListActivity Fragment indirizzi", a.toString());
+
 
 
         String[] bots = {
@@ -60,8 +76,10 @@ public class BotListActivityFragment extends Fragment {
 
 
 
-        ArrayAdapter<String> adapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item,R.id.list_bot_textview,listBots);
 
+  //     ArrayAdapter<String> adapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item,R.id.list_bot_textview,listBots);
+
+       ArrayAdapter<String> adapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item,R.id.list_bot_textview,indirizzi);
 
 
         ListView listView=(ListView)rootView.findViewById(R.id.listView_bot);
@@ -106,4 +124,5 @@ public class BotListActivityFragment extends Fragment {
 
         return rootView;
     }
+
 }

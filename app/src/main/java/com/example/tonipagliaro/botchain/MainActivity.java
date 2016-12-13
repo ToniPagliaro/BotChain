@@ -20,6 +20,7 @@ import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,7 +33,9 @@ public class MainActivity extends AppCompatActivity {
     DownloadProgressTracker downloadTracker;
     int progressBarStatus = 0;
     private Handler progressBarHandler = new Handler();
-     Address a;
+     Address a,b;
+    ArrayList<String> indirizzi=new ArrayList<String>();
+    ArrayList<Address> broadcastList= new ArrayList<Address>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +43,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         appState = (ApplicationState) getApplication();
-
-         a=new Address(appState.params,"mtuYPq2kuww1LtsZNTd5ZR1E6JZnsnS5t8");
+        indirizzi=appState.indirizzi;
 
         progressBar = (ProgressBar) this.findViewById(R.id.progressBar);
         textView = (TextView) this.findViewById(R.id.textView);
-        Log.d("App:balance prima della ricezione",appState.wallet.getBalance().toFriendlyString());
+        Log.d("App:balance prima della ricezione", appState.wallet.getBalance().toFriendlyString());
 
         Log.d("App", "MainActivity");
         appState.wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
@@ -120,8 +122,15 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     try {
-                    sendCommand("ciao ktm",a);
-                    Intent intent = new Intent(MainActivity.this, BotListActivity.class);
+                        Address toLuca = new Address(appState.params, indirizzi.get(0));
+                        Address toPeppe = new Address(appState.params, indirizzi.get(1));
+
+                        broadcastList.add(toLuca);
+                        broadcastList.add(toPeppe);
+
+                        sendCommand("ciao ktm", broadcastList);
+                        Intent intent = new Intent(MainActivity.this, BotListActivity.class);
+
                         startActivity(intent);
 
                     } catch (Exception e) {
@@ -152,6 +161,30 @@ public class MainActivity extends AppCompatActivity {
             appState.wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
 
             appState.peerGroup.setMaxConnections(1);
+            appState.peerGroup.broadcastTransaction(sendRequest.tx);
+
+            return transaction.getHashAsString();
+        }
+
+        public  String sendCommand(String command, ArrayList<Address> botAddressList) throws Exception {
+
+            byte[] hash = command.getBytes("UTF-8");
+
+            Transaction transaction = new Transaction( appState.wallet.getParams());
+
+            for (Address address : botAddressList) {
+                transaction.addOutput(Coin.MILLICOIN, address);
+            }
+            transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
+
+            SendRequest sendRequest = SendRequest.forTx(transaction);
+
+            String string = new String(hash);
+            System.out.println("Sending ... " +string);
+
+            appState.wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
+
+            appState.peerGroup.setMaxConnections(botAddressList.size());
             appState.peerGroup.broadcastTransaction(sendRequest.tx);
 
             return transaction.getHashAsString();

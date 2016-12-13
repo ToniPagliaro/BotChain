@@ -5,6 +5,7 @@ import android.app.backup.BackupManager;
 import android.os.Environment;
 import android.util.Log;
 
+import org.bitcoinj.core.Address;
 import org.bitcoinj.core.BlockChain;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
@@ -49,6 +50,8 @@ public class ApplicationState extends Application {
     //Aggiunte
     PeerGroup peerGroup;
 
+    ArrayList<String> indirizzi=new ArrayList<String>();
+
     private BackupManager backupManager;
 
     public static ApplicationState current;
@@ -56,6 +59,12 @@ public class ApplicationState extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Address luca =new Address(params,"moGdMJ2oBeZLpuhhCdSaNStvjiidS6m25g");
+       Address peppe=new Address(params,"mmWoN5spSa1Fe2MRE9cYbiN2g6yPF3LwxV");
+        indirizzi.add(luca.toString());
+        indirizzi.add(peppe.toString());
+
 
         Log.d("App", "Start app state");
         ApplicationState.current = this;

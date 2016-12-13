@@ -5,16 +5,42 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class BotListActivity extends AppCompatActivity {
+import java.util.ArrayList;
 
+public class BotListActivity extends AppCompatActivity {
+    ArrayList<String> indirizzi=new ArrayList<String>();
+    ApplicationState appState;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_bot_list);
 
+
+        appState = (ApplicationState) getApplication();
+
+       // String a="jakhaklfha";
+        //String b="djfhakjfhkahfkl";
+        indirizzi=appState.indirizzi;
+
+
+       // indirizzi.add(a);
+        //indirizzi.add(b);
+
+/*        Bundle bundle=new Bundle();
+        bundle.putStringArrayList("listaBot", indirizzi);
+        for(String s : indirizzi)
+            Log.e("Bot ListActivity indirizzi",s.toString());
+
+        BotListActivityFragment bf=new BotListActivityFragment();
+        bf.setArguments(bundle);
+*/
+
+        setContentView(R.layout.activity_bot_list);
     }
 
+public ArrayList<String> getIndirizzi(){
+    return indirizzi;
+}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
