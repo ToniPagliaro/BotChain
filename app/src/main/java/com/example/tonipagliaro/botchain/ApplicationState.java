@@ -60,10 +60,10 @@ public class ApplicationState extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Address luca =new Address(params,"mz1wuR4xJftvgjpZDMJqrXx3hASY3z49xr");
-       Address peppe=new Address(params,"myBS9Nu24V5PKzKxCRpKYSpUEaKdcdUxTq");
+        Address luca =new Address(params,"mvX1kD99iJNKAQXW14hzZXKJ1DEWkZaDG5");
+     //  Address peppe=new Address(params,"myBS9Nu24V5PKzKxCRpKYSpUEaKdcdUxTq");
         indirizzi.add(luca.toString());
-        indirizzi.add(peppe.toString());
+     //   indirizzi.add(peppe.toString());
 
 
         Log.d("App", "Start app state");

@@ -80,10 +80,21 @@ public class BotListActivity extends AppCompatActivity {
                 Log.d("App","Op_return   "+mess);
 
             }
-            switch(mess) {
-                case "ping_ok":
-                    indirizziAttivi.add(from.toString());
+            String[] v=mess.split("-");
+            String comando=v[0];
 
+            Log.d("App","comando: "+comando);
+
+            String addressString=v[1];
+
+           Log.d("App","address:"+addressString);
+
+
+            if(comando.equalsIgnoreCase("ping_ok")) {
+
+
+                    indirizziAttivi.add(addressString);
+                    break;
             }
 
         }

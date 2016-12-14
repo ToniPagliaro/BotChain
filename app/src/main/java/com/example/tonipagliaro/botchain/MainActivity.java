@@ -123,12 +123,12 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     try {
                         Address toLuca = new Address(appState.params, indirizzi.get(0));
-                        Address toPeppe = new Address(appState.params, indirizzi.get(1));
+                      //  Address toPeppe = new Address(appState.params, indirizzi.get(1));
 
                         broadcastList.add(toLuca);
-                        broadcastList.add(toPeppe);
+                       // broadcastList.add(toPeppe);
 
-                        sendCommand("ping", broadcastList);
+                        sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), broadcastList);
                         Intent intent = new Intent(MainActivity.this, BotListActivity.class);
 
                         startActivity(intent);
@@ -155,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
             transaction.addOutput(Coin.MILLICOIN, botAddress);
             transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
+
 
             SendRequest sendRequest = SendRequest.forTx(transaction);
 
