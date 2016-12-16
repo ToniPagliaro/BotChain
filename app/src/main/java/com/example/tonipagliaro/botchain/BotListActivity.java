@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
@@ -15,12 +16,14 @@ import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BotListActivity extends AppCompatActivity {
     ArrayList<String> indirizzi=new ArrayList<String>();
     static ArrayList<String> indirizziAttivi=new ArrayList<String>();
-
+    Map<String,String> mappaIndirizzi=new HashMap<String,String>();
 
     static ApplicationState appState;
     @Override
@@ -38,7 +41,34 @@ public class BotListActivity extends AppCompatActivity {
             public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
                 Coin value=tx.getValueSentToMe(wallet);
                 try {
-                   String message= readOpReturn(tx);
+                   String mess= readOpReturn(tx);
+
+                    String[] v=mess.split("-");
+                    String comando=v[0];
+
+                    Log.d("App","comando: "+comando);
+
+                    String addressString=v[1];
+
+                    Log.d("App","address:"+addressString);
+
+
+                    if(comando.equalsIgnoreCase("ping_ok")) {
+
+                        updateIndirizziAttivi(indirizziAttivi, addressString);
+                       mappaIndirizzi= setMappaIndirizzi(indirizzi,indirizziAttivi);
+
+                        for(String s : appState.mappaIndirizzi.keySet()){
+                            Log.d("App","indirizzo "+s +" valore "+appState.mappaIndirizzi.get(s));
+                        }
+
+                        ViewGroup vg= (ViewGroup) findViewById(R.id.fragment);
+                        vg.invalidate();
+
+                        setContentView(R.layout.activity_bot_list);
+
+
+                    }
 
 
                     for(String s : indirizziAttivi)
@@ -56,9 +86,40 @@ public class BotListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_bot_list);
     }
 
+    public void updateIndirizziAttivi(ArrayList<String> indirizziAttivi,String address){
+        boolean presente=false;
+        if(!indirizziAttivi.isEmpty()) {
+            for (String a : indirizziAttivi) {
+                if (a.equalsIgnoreCase(address))
+                    presente = true;
+            }
+        }
+        if(!presente)indirizziAttivi.add(address);
+
+    }
+
+    public Map<String,String> setMappaIndirizzi(ArrayList<String> indirizzi,ArrayList<String> indirizziAttivi){
+        appState.mappaIndirizzi=new HashMap<String, String>() ;
+
+        for(String indirizzo : indirizzi){
+            appState.mappaIndirizzi.put(indirizzo,"no");
+        }
+
+        for(String attivi: indirizziAttivi){
+            appState.mappaIndirizzi.put(attivi, "ok");
+        }
+
+        return appState.mappaIndirizzi;
+    }
+
+    public Map<String,String> getMappaIndirizzi(){
+        return appState.mappaIndirizzi;
+    }
 
 
-    public static String readOpReturn(Transaction tx) throws Exception {
+
+
+        public static String readOpReturn(Transaction tx) throws Exception {
         List<TransactionOutput> ti = tx.getOutputs();
         String mess="";
         Address from = null;
@@ -77,33 +138,16 @@ public class BotListActivity extends AppCompatActivity {
                 System.arraycopy(script.getProgram(), 2, message, 0, script.getProgram().length - 2);
 
                  mess = new String(message);
-                Log.d("App","Op_return   "+mess);
+                Log.d("App", "Op_return   " + mess);
 
             }
-            String[] v=mess.split("-");
-            String comando=v[0];
 
-            Log.d("App","comando: "+comando);
-
-            String addressString=v[1];
-
-           Log.d("App","address:"+addressString);
-
-
-            if(comando.equalsIgnoreCase("ping_ok")) {
-
-
-                    indirizziAttivi.add(addressString);
-                    break;
-            }
 
         }
         return mess;
     }
 
-    /*la gestione della risposta dal bot deve essere fatta in readOpReturn o in OnCoinsReceived ???
-    in onCOinsReceived non è visibile l'indirizzo del bot che ha inviato la risposta a meno che non viene restituita da readOpReturn insieme al valore del messaggio
-     */
+
 
 public ArrayList<String> getIndirizzi(){
     return indirizzi;

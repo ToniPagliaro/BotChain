@@ -14,6 +14,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Toni Pagliaro on 28/11/2016.
@@ -34,27 +35,26 @@ public class BotListActivityFragment extends Fragment {
 
 
 
-//        ArrayList<Address> indirizzi= (ArrayList<Address>) getArguments().getSerializable("listaBot");
 
         BotListActivity activity=(BotListActivity)getActivity();
-        ArrayList<String> indirizzi=activity.getIndirizzi();
+       // ArrayList<String> indirizzi =activity.getIndirizzi();
+
+
+
+       Map<String,String> mappaIndirizzi=activity.getMappaIndirizzi();
+
+        ArrayList<String> indirizzi=new ArrayList<String>();
+
+        for(String s : mappaIndirizzi.keySet()){
+            indirizzi.add(s+"stato: "+mappaIndirizzi.get(s));
+        }
 
        // ArrayList<String> indirizzi=getArguments().getStringArrayList("listaBot");
         for(String a : indirizzi)
-            Log.e("Bot ListActivity Fragment indirizzi", a.toString());
+            Log.d("App","Bot ListActivity Fragment indirizzi"+ a.toString());
 
 
 
-        String[] bots = {
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-                "mkYQv8TyXFUXFYZCxHTywcZnv75r5z9s7b",
-        };
 
 
         final String[] comandi = {
@@ -72,12 +72,23 @@ public class BotListActivityFragment extends Fragment {
         };
 
 
-        List<String> listBots = new ArrayList<String>(Arrays.asList(bots));
+       // List<String> listBots = new ArrayList<String>(Arrays.asList(bots));
 
 
 
 
   //     ArrayAdapter<String> adapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item,R.id.list_bot_textview,listBots);
+
+ /*       ImageView iv=(ImageView) rootView.findViewById(R.id.img);
+        for(String s : mappaIndirizzi.keySet()) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase("ok"))
+                iv.setImageResource(R.drawable.green);
+            else {
+                iv.setImageResource(R.drawable.red);
+
+            }
+        }
+*/
 
        ArrayAdapter<String> adapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item,R.id.list_bot_textview,indirizzi);
 

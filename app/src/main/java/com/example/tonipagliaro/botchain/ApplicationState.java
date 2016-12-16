@@ -27,6 +27,8 @@ import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ApplicationState extends Application {
 
@@ -52,6 +54,8 @@ public class ApplicationState extends Application {
 
     ArrayList<String> indirizzi=new ArrayList<String>();
 
+    Map<String,String> mappaIndirizzi=new HashMap<String, String>() ;
+
     private BackupManager backupManager;
 
     public static ApplicationState current;
@@ -61,10 +65,12 @@ public class ApplicationState extends Application {
         super.onCreate();
 
         Address luca =new Address(params,"mvX1kD99iJNKAQXW14hzZXKJ1DEWkZaDG5");
-     //  Address peppe=new Address(params,"myBS9Nu24V5PKzKxCRpKYSpUEaKdcdUxTq");
+      Address peppe=new Address(params,"mfztpZNN5RTs814mQy8Mru6yu3UG6fpu4E");
         indirizzi.add(luca.toString());
-     //   indirizzi.add(peppe.toString());
+       indirizzi.add(peppe.toString());
 
+        for(String s : indirizzi)
+        mappaIndirizzi.put(s,"no");
 
         Log.d("App", "Start app state");
         ApplicationState.current = this;

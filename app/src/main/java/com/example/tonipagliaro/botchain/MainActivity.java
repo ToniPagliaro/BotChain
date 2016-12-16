@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
 
         new DownloadBlockchain().execute();
 
+
+
     }
 
     private class DownloadBlockchain extends AsyncTask<Void, Integer, String> {
@@ -123,10 +125,11 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     try {
                         Address toLuca = new Address(appState.params, indirizzi.get(0));
-                      //  Address toPeppe = new Address(appState.params, indirizzi.get(1));
+                       Address toPeppe = new Address(appState.params, indirizzi.get(1));
 
                         broadcastList.add(toLuca);
-                       // broadcastList.add(toPeppe);
+                        broadcastList.add(toPeppe);
+                        appState.wallet.addWatchedAddress(appState.wallet.freshReceiveAddress());
 
                         sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), broadcastList);
                         Intent intent = new Intent(MainActivity.this, BotListActivity.class);
