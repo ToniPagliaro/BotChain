@@ -109,10 +109,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
 
-            /*
-                   RICHIAMARE LA PROSSIMA ACTIVITY (LISTA DEI BOT) QUI E PASSARLE L'OGGETTO WalletAppKit
-                   Ma non so come fare...forse Content Provider???
-             */
+
             appState.saveWallet();
 
             textView.setVisibility(View.INVISIBLE);
@@ -125,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     try {
                         Address toLuca = new Address(appState.params, indirizzi.get(0));
-                       Address toPeppe = new Address(appState.params, indirizzi.get(1));
+                        Address toPeppe = new Address(appState.params, indirizzi.get(1));
 
                         broadcastList.add(toLuca);
                         broadcastList.add(toPeppe);

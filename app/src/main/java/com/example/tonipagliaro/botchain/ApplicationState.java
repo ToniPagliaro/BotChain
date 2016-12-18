@@ -64,13 +64,13 @@ public class ApplicationState extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Address luca =new Address(params,"mvX1kD99iJNKAQXW14hzZXKJ1DEWkZaDG5");
-      Address peppe=new Address(params,"mfztpZNN5RTs814mQy8Mru6yu3UG6fpu4E");
+        Address luca =new Address(params,"mvSWLyXqcQxouanZMtUbv5wmJnsBt3bfSj");
+      Address peppe=new Address(params,"mgCryBENg88N6HfJieZNa7xcT9wZS6dwe3");
         indirizzi.add(luca.toString());
        indirizzi.add(peppe.toString());
 
         for(String s : indirizzi)
-        mappaIndirizzi.put(s,"no");
+            mappaIndirizzi.put(s,"no");
 
         Log.d("App", "Start app state");
         ApplicationState.current = this;
