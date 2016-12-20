@@ -1,7 +1,18 @@
 <resources>
     <string name="app_name">BotChain</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_bot_list">BotListActivity</string>
+
+    <string name="title_command_dialog">Command List</string>
+
+    <array name="command_list">
+        <item>Ciao</item>
+    </array>
+
+    <array name="botList">
+        <item>mvSWLyXqcQxouanZMtUbv5wmJnsBt3bfSj</item>
+        <item>mgCryBENg88N6HfJieZNa7xcT9wZS6dwe3</item>
+        <item>mnHZGiRzPDscqCFuVY2YqaAzvLcQcfEoFe</item>
+    </array>
 </resources>

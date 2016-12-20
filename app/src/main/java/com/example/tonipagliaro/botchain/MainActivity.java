@@ -11,16 +11,12 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.listeners.DownloadProgressTracker;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 
-import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,9 +29,6 @@ public class MainActivity extends AppCompatActivity {
     DownloadProgressTracker downloadTracker;
     int progressBarStatus = 0;
     private Handler progressBarHandler = new Handler();
-     Address a,b;
-    ArrayList<String> indirizzi=new ArrayList<String>();
-    ArrayList<Address> broadcastList= new ArrayList<Address>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         appState = (ApplicationState) getApplication();
-        indirizzi=appState.indirizzi;
 
         progressBar = (ProgressBar) this.findViewById(R.id.progressBar);
         textView = (TextView) this.findViewById(R.id.textView);
@@ -121,16 +113,16 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     try {
-                        Address toLuca = new Address(appState.params, indirizzi.get(0));
-                        Address toPeppe = new Address(appState.params, indirizzi.get(1));
 
-                        broadcastList.add(toLuca);
-                        broadcastList.add(toPeppe);
                         appState.wallet.addWatchedAddress(appState.wallet.freshReceiveAddress());
 
-                        sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), broadcastList);
-                        Intent intent = new Intent(MainActivity.this, BotListActivity.class);
+                        //Inviamo il comando solo ai bot che hanno lo stato "ok"
+                        appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), appState.getBotStateOk());
 
+                        //Cambia lo stato dei bot in "no"
+                        appState.setStatoBots("no");
+
+                        Intent intent = new Intent(MainActivity.this, BotListActivity.class);
                         startActivity(intent);
 
                     } catch (Exception e) {
@@ -140,59 +132,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-
         }
 
-
-
-
-
-        public  String sendCommand(String command, Address botAddress) throws Exception {
-
-            byte[] hash = command.getBytes("UTF-8");
-
-            Transaction transaction = new Transaction(appState.wallet.getParams());
-
-            transaction.addOutput(Coin.MILLICOIN, botAddress);
-            transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
-
-
-            SendRequest sendRequest = SendRequest.forTx(transaction);
-
-            String string = new String(hash);
-            System.out.println("Sending ... " + string);
-
-            appState.wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
-
-            appState.peerGroup.setMaxConnections(1);
-            appState.peerGroup.broadcastTransaction(sendRequest.tx);
-
-            return transaction.getHashAsString();
-        }
-
-        public  String sendCommand(String command, ArrayList<Address> botAddressList) throws Exception {
-
-            byte[] hash = command.getBytes("UTF-8");
-
-            Transaction transaction = new Transaction( appState.wallet.getParams());
-
-            for (Address address : botAddressList) {
-                transaction.addOutput(Coin.MILLICOIN, address);
-            }
-            transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
-
-            SendRequest sendRequest = SendRequest.forTx(transaction);
-
-            String string = new String(hash);
-            System.out.println("Sending ... " +string);
-
-            appState.wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
-
-            appState.peerGroup.setMaxConnections(botAddressList.size());
-            appState.peerGroup.broadcastTransaction(sendRequest.tx);
-
-            return transaction.getHashAsString();
-        }
 
 
     }
