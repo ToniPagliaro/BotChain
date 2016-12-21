@@ -39,13 +39,13 @@ public class MainActivity extends AppCompatActivity {
 
         progressBar = (ProgressBar) this.findViewById(R.id.progressBar);
         textView = (TextView) this.findViewById(R.id.textView);
-        Log.d("App:balance prima della ricezione", appState.wallet.getBalance().toFriendlyString());
+        Log.d("App", appState.wallet.getBalance().toFriendlyString());
 
         Log.d("App", "MainActivity");
         appState.wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
             public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
-                Log.d("App: balance dopo la ricezione", appState.wallet.getBalance().toFriendlyString());
+                Log.d("App", appState.wallet.getBalance().toFriendlyString());
                 appState.saveWallet();
                 //trovare indirizzo del bot da transaction
 

