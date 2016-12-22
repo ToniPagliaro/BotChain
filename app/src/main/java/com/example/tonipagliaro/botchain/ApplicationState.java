@@ -43,6 +43,11 @@ public class ApplicationState extends Application {
 
     static final Object[] walletFileLock = new Object[0];
 
+    final String BOT_STATE_START = "START";
+    final String BOT_STATE_ONLINE = "ONLINE";
+    final String BOT_STATE_OFFLINE = "OFFLINE";
+    final String BOT_STATE_QUEST = "QUEST";
+
     private String filePrefix = "testnet";
 
     File walletFile;
@@ -50,8 +55,6 @@ public class ApplicationState extends Application {
     boolean walletShouldBeRebuilt = false;
 
     File keychainFile;
-
-    boolean firstTime;
 
     NetworkParameters params = TestNet3Params.get();
 
@@ -81,7 +84,7 @@ public class ApplicationState extends Application {
         String[] bots = res.getStringArray(R.array.botList);
         for (String s: bots) {
             indirizzi.add(new Address(params, s));
-            mappaIndirizzi.put(s,"ok");
+            mappaIndirizzi.put(s,BOT_STATE_START);
         }
 
         Log.d("App", "Start app state");
@@ -93,13 +96,12 @@ public class ApplicationState extends Application {
         //Leggiamo il file che tiene traccia dei bot attivi (SE ESISTE)
         if (!fileMapAddress.exists()) {
             saveMappaIndirizzi();
-            firstTime = true;
         }
         else {
             loadMappaIndirizzi();
-            firstTime = false;
         }
 
+        logMappaIndirizzi();
 
         //Leggiamo o creiamo il wallet
         synchronized (ApplicationState.walletFileLock) {
@@ -220,6 +222,13 @@ public class ApplicationState extends Application {
         saveMappaIndirizzi();
     }
 
+    public void setStatoBots(ArrayList<String> addressList, String stato) {
+        for (String address : addressList) {
+            mappaIndirizzi.put(address, stato);
+        }
+        saveMappaIndirizzi();
+    }
+
     public void saveMappaIndirizzi() {
         try {
             Log.d("App", "SCRIVO IL FILE");
@@ -252,27 +261,57 @@ public class ApplicationState extends Application {
             }
     }
 
-    public ArrayList<Address> getBotStateOk() {
-        ArrayList<Address> listaBotOk = new ArrayList<Address>();
+    public ArrayList<Address> getBotStateStart() {
+        ArrayList<Address> listaBotStart = new ArrayList<Address>();
         for (String s : mappaIndirizzi.keySet()) {
-            if (mappaIndirizzi.get(s).equalsIgnoreCase("ok"))
-                Log.d("App", "BOT CON STATO OK: " +s);
-                listaBotOk.add(new Address(params, s));
+            if (mappaIndirizzi.get(s).equalsIgnoreCase(BOT_STATE_START)) {
+                Log.d("App", "BOT CON STATO START: " + s);
+                listaBotStart.add(new Address(params, s));
+            }
         }
-        return listaBotOk;
+        return listaBotStart;
     }
 
-    public ArrayList<Address> getBotStateNo() {
+    public ArrayList<Address> getBotStateOnline() {
+        ArrayList<Address> listaBotOffline = new ArrayList<Address>();
+        for (String s : mappaIndirizzi.keySet()) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase(BOT_STATE_ONLINE)) {
+                listaBotOffline.add(new Address(params, s));
+            }
+        }
+        return listaBotOffline;
+    }
+
+    public ArrayList<String> getBotStateOnlineString() {
+        ArrayList<String> listaBotOffline = new ArrayList<String>();
+        for (String s : mappaIndirizzi.keySet()) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase(BOT_STATE_ONLINE)) {
+                listaBotOffline.add(s);
+            }
+        }
+        return listaBotOffline;
+    }
+
+    public ArrayList<Address> getBotStateOffline() {
         ArrayList<Address> listaBotNo = new ArrayList<Address>();
         for (String s : mappaIndirizzi.keySet()) {
-            if (mappaIndirizzi.get(s).equalsIgnoreCase("no")) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase(BOT_STATE_OFFLINE)) {
                 listaBotNo.add(new Address(params, s));
             }
         }
         return listaBotNo;
     }
 
-
+    public ArrayList<Address> getBotStateQuest() {
+        ArrayList<Address> listaBotNo = new ArrayList<Address>();
+        for (String s : mappaIndirizzi.keySet()) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase(BOT_STATE_QUEST)) {
+                listaBotNo.add(new Address(params, s));
+            }
+        }
+        return listaBotNo;
+    }
+/*
     public  String sendCommand(String command, ArrayList<Address> botAddressList) throws Exception {
 
         byte[] hash = command.getBytes("UTF-8");
@@ -280,16 +319,15 @@ public class ApplicationState extends Application {
         Transaction transaction = new Transaction( wallet.getParams());
 
         Coin value = Coin.MILLICOIN;
-        Log.d("App", "Valore di FIRSTTIME"+String.valueOf(firstTime));
-        if (firstTime) {
-            value = value.add(Coin.MILLICOIN);
-        }
+
         for (Address address : botAddressList) {
             transaction.addOutput(value, address);
+            Log.d("SEND COMMAND", address.toString());
         }
         transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
 
         SendRequest sendRequest = SendRequest.forTx(transaction);
+        sendRequest.feePerKb = Coin.ZERO;
 
         String string = new String(hash);
         System.out.println("Sending ... " +string);
@@ -301,7 +339,7 @@ public class ApplicationState extends Application {
 
         return transaction.getHashAsString();
     }
-
+*/
 
     public  String sendCommand(String command, Address botAddress) throws Exception {
 
@@ -327,27 +365,46 @@ public class ApplicationState extends Application {
         return transaction.getHashAsString();
     }
 
-    public String sendCommandGetOS(String command, Address botAddress) throws Exception {
-        Log.d("App", "INVIO UN COMANDO");
+    public  String sendCommand(String command) throws Exception {
+
         byte[] hash = command.getBytes("UTF-8");
 
-        Transaction transaction = new Transaction(wallet.getParams());
+        Transaction transaction = new Transaction( wallet.getParams());
 
-        transaction.addOutput(Coin.MILLICOIN, botAddress);
+        Coin millicoin = Coin.MILLICOIN;
+        Coin due_millicoin = millicoin.add(millicoin);
+        int numConnection = 0;
+        for (String s : mappaIndirizzi.keySet()) {
+            if (mappaIndirizzi.get(s).equalsIgnoreCase(BOT_STATE_START)) {
+                transaction.addOutput(due_millicoin, new Address(params, s));
+                numConnection++;
+            }
+            else if (mappaIndirizzi.get(s).equalsIgnoreCase((BOT_STATE_ONLINE))) {
+                Log.d("BOT", s);
+                transaction.addOutput(Coin.MILLICOIN, new Address(params, s));
+                numConnection++;
+            }
+        }
         transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
 
-
         SendRequest sendRequest = SendRequest.forTx(transaction);
+        sendRequest.feePerKb = Coin.ZERO;
 
         String string = new String(hash);
-        System.out.println("Sending ... " + string);
+        System.out.println("Sending ... " +string);
 
         wallet.completeTx(sendRequest);   // Could throw InsufficientMoneyException
 
-        peerGroup.setMaxConnections(1);
+        peerGroup.setMaxConnections(numConnection);
         peerGroup.broadcastTransaction(sendRequest.tx);
 
         return transaction.getHashAsString();
+    }
+
+    public void logMappaIndirizzi() {
+        for (String s : mappaIndirizzi.keySet()) {
+            Log.d("MAP", "BOT = " + s +"VALORE = "+ mappaIndirizzi.get(s));
+        }
     }
 
 

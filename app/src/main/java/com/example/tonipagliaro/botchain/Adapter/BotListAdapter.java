@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.tonipagliaro.botchain.ApplicationState;
 import com.example.tonipagliaro.botchain.R;
 
 import java.util.List;
@@ -21,6 +22,11 @@ public class BotListAdapter extends ArrayAdapter<String> {
     private int resource;
     private Context context;
     private List<String> values;
+
+    static final String BOT_STATE_START = "START";
+    static final String BOT_STATE_ONLINE = "ONLINE";
+    static final String BOT_STATE_OFFLINE = "OFFLINE";
+    static final String BOT_STATE_QUEST = "QUEST";
 
     public BotListAdapter(Context context, int resource, List<String> objects) {
         super(context, resource, objects);
@@ -50,10 +56,23 @@ public class BotListAdapter extends ArrayAdapter<String> {
         textView.setText(address);
 
         ImageView imgView = (ImageView) rowView.findViewById(R.id.list_bot_imageView);
-        if (ping.equalsIgnoreCase("no"))
-            imgView.setImageResource(R.drawable.red);
-        else
-            imgView.setImageResource(R.drawable.green);
+
+        switch(ping) {
+            case BOT_STATE_OFFLINE:
+                imgView.setImageResource(R.drawable.red);
+                break;
+            case BOT_STATE_START:
+                imgView.setImageResource(R.drawable.red);
+                break;
+            case BOT_STATE_ONLINE:
+                imgView.setImageResource(R.drawable.green);
+                break;
+            case BOT_STATE_QUEST:
+                imgView.setImageResource(R.drawable.yellow);
+                break;
+            default:
+                break;
+        }
 
         return rowView;
     }

