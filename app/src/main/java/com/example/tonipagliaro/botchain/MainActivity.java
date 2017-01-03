@@ -43,7 +43,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         appState = (ApplicationState) getApplication();
-        indirizzi=appState.indirizzi;
+      //  indirizzi=appState.indirizzi;
+
+        indirizzi=appState.getIndirizzi();
 
         progressBar = (ProgressBar) this.findViewById(R.id.progressBar);
         textView = (TextView) this.findViewById(R.id.textView);
@@ -64,7 +66,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
     }
+
+
 
     private class DownloadBlockchain extends AsyncTask<Void, Integer, String> {
 
@@ -109,10 +114,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
 
-            /*
-                   RICHIAMARE LA PROSSIMA ACTIVITY (LISTA DEI BOT) QUI E PASSARLE L'OGGETTO WalletAppKit
-                   Ma non so come fare...forse Content Provider???
-             */
+
             appState.saveWallet();
 
             textView.setVisibility(View.INVISIBLE);
@@ -124,11 +126,13 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     try {
+
+                        //Per ora il ping viene fatto solo al primo indirizzo letto dal file
                         Address toLuca = new Address(appState.params, indirizzi.get(0));
-                       Address toPeppe = new Address(appState.params, indirizzi.get(1));
+                      //  Address toPeppe = new Address(appState.params, indirizzi.get(1));
 
                         broadcastList.add(toLuca);
-                        broadcastList.add(toPeppe);
+                       // broadcastList.add(toPeppe);
                         appState.wallet.addWatchedAddress(appState.wallet.freshReceiveAddress());
 
                         sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString(), broadcastList);

