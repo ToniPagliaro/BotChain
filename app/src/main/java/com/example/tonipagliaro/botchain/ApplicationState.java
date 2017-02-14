@@ -3,6 +3,7 @@ package com.example.tonipagliaro.botchain;
 import android.app.Application;
 import android.app.backup.BackupManager;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 
@@ -24,10 +25,14 @@ import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.Wallet;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -35,6 +40,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +60,8 @@ public class ApplicationState extends Application {
     File walletFile;
     Wallet wallet;
     boolean walletShouldBeRebuilt = false;
+
+    File questFile;
 
     File keychainFile;
 
@@ -80,6 +89,7 @@ public class ApplicationState extends Application {
         super.onCreate();
 
         //SI prendono gli indirizzi dei bot dalle risorse xml e si aggiungono alla lista "indirizzi"
+        /*
         Resources res = getResources();
         String[] bots = res.getStringArray(R.array.botList);
         for (String s: bots) {
@@ -102,6 +112,8 @@ public class ApplicationState extends Application {
         }
 
         logMappaIndirizzi();
+        */
+        new DownloadListBotFile().execute();
 
         //Leggiamo o creiamo il wallet
         synchronized (ApplicationState.walletFileLock) {
@@ -110,6 +122,7 @@ public class ApplicationState extends Application {
                 if (!mainDir.mkdir()) {
                     Log.e("App", "Errore nella crezione della cartella");
                 }
+            questFile = new File(Environment.getExternalStorageDirectory()+File.separator +"BotMasterV1", filePrefix + ".txt");
             //keychainFile = new File(getFilesDir(), filePrefix+".keychain");
             keychainFile = new File(Environment.getExternalStorageDirectory()+File.separator +"BotMasterV1", filePrefix + ".keychain");
             //walletFile = new File(getFilesDir(), filePrefix + ".wallet");
@@ -210,7 +223,7 @@ public class ApplicationState extends Application {
             }
             */
             Log.d("Wallet", "Notifying BackupManager that data has changed. Should backup soon.");
-            backupManager.dataChanged();
+            //backupManager.dataChanged();
         }
     }
 
@@ -236,6 +249,18 @@ public class ApplicationState extends Application {
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(mappaIndirizzi);
             oos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeQuestFile(String s) {
+        try {
+            FileOutputStream fos = new FileOutputStream(questFile);
+            fos.write(s.getBytes());
+            fos.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -404,6 +429,105 @@ public class ApplicationState extends Application {
     public void logMappaIndirizzi() {
         for (String s : mappaIndirizzi.keySet()) {
             Log.d("MAP", "BOT = " + s +"VALORE = "+ mappaIndirizzi.get(s));
+        }
+    }
+
+
+    private class DownloadListBotFile extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            String url="http://192.168.43.182:8080/ServerBotChain/FileServlet";
+            try {
+                //scarica il file degli indirizzi dal server
+                File fileBot=getOutputFromUrl(url);
+
+                //legge ogni linea del file scaricato
+                readAddressFromFile(fileBot);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        private void readAddressFromFile(File fileBot) {
+
+            BufferedReader br = null;
+            FileReader fr = null;
+
+            try {
+
+                fr = new FileReader(fileBot);
+                br = new BufferedReader(fr);
+
+                String sCurrentLine;
+
+                br = new BufferedReader(new FileReader(fileBot));
+
+                while ((sCurrentLine = br.readLine()) != null) {
+                    Log.v("App", "linea corrente file " + sCurrentLine);
+                    //indirizzi.add(sCurrentLine);
+                    mappaIndirizzi.put(sCurrentLine, BOT_STATE_START);
+                }
+
+                fileMapAddress = new File(getFilesDir(), "map_address.bots");
+
+                //Leggiamo il file che tiene traccia dei bot attivi (SE ESISTE)
+                if (!fileMapAddress.exists()) {
+                    saveMappaIndirizzi();
+                }
+                else {
+                    loadMappaIndirizzi();
+                }
+
+                logMappaIndirizzi();
+
+            } catch (IOException e) {
+
+                e.printStackTrace();
+
+            } finally {
+
+                try {
+
+                    if (br != null)
+                        br.close();
+
+                    if (fr != null)
+                        fr.close();
+
+                } catch (IOException ex) {
+
+                    ex.printStackTrace();
+
+                }
+
+            }
+        }
+
+        private File getOutputFromUrl(String url) throws IOException {
+            URL u = new URL(url);
+            // il file scaricato compare nell'archivio
+            File file = new File(Environment.getExternalStorageDirectory()+File.separator +"fileBot.txt");
+
+            URLConnection ucon = u.openConnection();
+            InputStream is = ucon.getInputStream();
+            BufferedInputStream bis = new BufferedInputStream(is);
+
+
+            ByteArrayOutputStream baf = new ByteArrayOutputStream(50);
+            int current = 0;
+            while ((current = bis.read()) != -1) {
+                baf.write((byte) current);
+            }
+
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(baf.toByteArray());
+            fos.close();
+
+            return file;
+
         }
     }
 

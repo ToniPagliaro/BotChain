@@ -172,6 +172,7 @@ public class BotListActivity extends AppCompatActivity {
                         case ("os"):
                             setBotStateOnline(addressString);
                             String os = v[2];
+                            appState.writeQuestFile("SISTEMA OPERATIV BOT: " + os);
                             Log.d("App", "SISTEMA OPERATIV BOT: " + os);
                             break;
                         case ("ping_ok"):
@@ -183,11 +184,13 @@ public class BotListActivity extends AppCompatActivity {
                         case ("username"):
                             setBotStateOnline(addressString);
                             String username = v[2];
+                            appState.writeQuestFile("SISTEMA OPERATIV BOT: " + username);
                             Log.d("App", "SISTEMA OPERATIV BOT: " + username);
                             break;
                         case ("userhome"):
                             setBotStateOnline(addressString);
                             String userhome = v[2];
+                            appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
                             Log.d("App", "SISTEMA OPERATIV BOT: " + userhome);
                             break;
                         default:
