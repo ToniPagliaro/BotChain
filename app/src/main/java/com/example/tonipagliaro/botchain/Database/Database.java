@@ -1,0 +1,111 @@
+package com.example.tonipagliaro.botchain.Database;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+/**
+ * Created by Utente on 15/02/2017.
+ */
+
+public class Database extends SQLiteOpenHelper {
+
+    public static final String DB_NAME="bot.db";
+    public static final String DB_TABLE="bot_table";
+    public static final String ATTRIBUTE_ADDRESS="ADDRESS";
+    public static final String ATTRIBUTE_OS="OS";
+    public static final String ATTRIBUTE_USERNAME="USERNAME";
+    public static final String ATTRIBUTE_USERHOME="USERHOME";
+
+
+    public Database(Context context) {
+        super(context, DB_NAME, null, 1);
+
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+      db.execSQL("create table " +DB_TABLE + " (ADDRESS TEXT PRIMARY KEY, OS TEXT, USERNAME TEXT, USERHOME TEXT )"  );
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int i, int i1) {
+      db.execSQL("DROP TABLE IF EXIST "+DB_TABLE);
+      onCreate(db);
+    }
+
+    public boolean insertData (String address, String os, String username, String userhome){
+        SQLiteDatabase db= this.getWritableDatabase();
+        ContentValues contentValues= new ContentValues();
+        contentValues.put(ATTRIBUTE_ADDRESS,address);
+        contentValues.put(ATTRIBUTE_OS,os);
+        contentValues.put(ATTRIBUTE_USERNAME,username);
+        contentValues.put(ATTRIBUTE_USERHOME,userhome);
+        long result=db.insert(DB_TABLE,null,contentValues);
+        if (result ==-1)
+            return false;
+        else
+            return true;
+
+    }
+
+    public boolean updateOs(String address, String os){
+        SQLiteDatabase db= this.getWritableDatabase();
+        ContentValues contentValues= new ContentValues();
+        contentValues.put(ATTRIBUTE_ADDRESS,address);
+        contentValues.put(ATTRIBUTE_OS,os);
+        long result=db.update(DB_TABLE, contentValues, "ADDRESS = ?", new String[]{address});
+        if (result ==-1)
+            return false;
+        else
+            return true;
+    }
+
+    public boolean updateUsername(String address, String username){
+        SQLiteDatabase db= this.getWritableDatabase();
+        ContentValues contentValues= new ContentValues();
+        contentValues.put(ATTRIBUTE_ADDRESS,address);
+        contentValues.put(ATTRIBUTE_USERNAME,username);
+        long result=db.update(DB_TABLE, contentValues, "ADDRESS = ?", new String[]{address});
+        if (result ==-1)
+            return false;
+        else
+            return true;
+    }
+
+    public boolean updateUserHome(String address, String userhome){
+        SQLiteDatabase db= this.getWritableDatabase();
+        ContentValues contentValues= new ContentValues();
+        contentValues.put(ATTRIBUTE_ADDRESS,address);
+        contentValues.put(ATTRIBUTE_USERHOME,userhome);
+        long result=db.update(DB_TABLE, contentValues, "ADDRESS = ?", new String[]{address});
+        if (result ==-1)
+            return false;
+        else
+            return true;
+    }
+
+    public String getOS(String address){
+        SQLiteDatabase db= this.getWritableDatabase();
+        Cursor res= db.rawQuery("SELECT OS FROM "+ DB_TABLE+" WHERE ADDRESS = "+address,null);
+        res.moveToNext();
+        return res.getString(1);
+
+    }
+     public String getUsername(String address){
+        SQLiteDatabase db= this.getWritableDatabase();
+        Cursor res= db.rawQuery("SELECT USERNAME FROM "+ DB_TABLE+" WHERE ADDRESS = "+address ,null);
+        res.moveToNext();
+        return res.getString(2);
+    }
+    public String getUserhome(String address){
+        SQLiteDatabase db= this.getWritableDatabase();
+        Cursor res= db.rawQuery("SELECT USERHOME FROM "+ DB_TABLE+" WHERE ADDRESS = "+address ,null);
+        res.moveToNext();
+        return res.getString(3);
+    }
+
+
+}
