@@ -2,6 +2,7 @@ package com.example.tonipagliaro.botchain;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -168,39 +169,55 @@ public class BotListActivity extends AppCompatActivity {
 
                     Log.d("App", "address:" + addressString);
 
-                    switch (comando) {
-                        case ("os"):
-                            setBotStateOnline(addressString);
-                            String os = v[2];
-                            appState.writeQuestFile("SISTEMA OPERATIV BOT: " + os);
-                            Log.d("App", "SISTEMA OPERATIV BOT: " + os);
-                            break;
-                        case ("ping_ok"):
-                            setBotStateOnline(addressString);
-                            for (String s : appState.mappaIndirizzi.keySet()) {
-                                Log.d("App", "indirizzo " + s + " valore " + appState.mappaIndirizzi.get(s));
-                            }
-                            break;
-                        case ("username"):
-                            setBotStateOnline(addressString);
-                            String username = v[2];
-                            appState.writeQuestFile("SISTEMA OPERATIV BOT: " + username);
-                            Log.d("App", "SISTEMA OPERATIV BOT: " + username);
-                            break;
-                        case ("userhome"):
-                            setBotStateOnline(addressString);
-                            String userhome = v[2];
-                            appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
-                            Log.d("App", "SISTEMA OPERATIV BOT: " + userhome);
-                            break;
-                        default:
-                            break;
+                    if (appState.hasMapAddress(addressString)) {
+                        switch (comando) {
+                            case ("os"):
+                                setBotStateOnline(addressString);
+                                String os = v[2];
+                                appState.db.updateOs(addressString, os);
+                                //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + os);
+                                Log.d("App", "SISTEMA OPERATIV BOT: " + os);
+                                break;
+                            case ("ping_ok"):
+                                setBotStateOnline(addressString);
+                                for (String s : appState.mappaIndirizzi.keySet()) {
+                                    Log.d("App", "indirizzo " + s + " valore " + appState.mappaIndirizzi.get(s));
+                                }
+                                break;
+                            case ("username"):
+                                setBotStateOnline(addressString);
+                                String username = v[2];
+                                appState.db.updateUsername(addressString, username);
+                                //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + username);
+                                Log.d("App", "SISTEMA OPERATIV BOT: " + username);
+                                break;
+                            case ("userhome"):
+                                setBotStateOnline(addressString);
+                                String userhome = v[2];
+                                appState.db.updateUserHome(addressString, userhome);
+                                //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
+                                Log.d("App", "SISTEMA OPERATIV BOT: " + userhome);
+                                break;
+                            default:
+                                break;
+                        }
                     }
-
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        });
+
+        //Evento per la lunga pressione di un elemento della lista
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                //RIchiamare la activity Quest
+                String botAddress = listView.getItemAtPosition(position).toString().split("-")[0];
+                Intent intent = new Intent(BotListActivity.this, QuestActivity.class);
+                intent.putExtra("bot", botAddress);
+                startActivity(intent);
+                return false;
             }
         });
 

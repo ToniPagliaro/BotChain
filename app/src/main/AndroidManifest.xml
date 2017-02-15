@@ -28,7 +28,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".BotListActivity"></activity>
+        <activity android:name=".BotListActivity" />
+        <activity android:name=".QuestActivity"></activity>
     </application>
 
 </manifest>
