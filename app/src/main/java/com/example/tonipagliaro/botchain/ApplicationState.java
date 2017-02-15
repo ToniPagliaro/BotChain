@@ -93,7 +93,7 @@ public class ApplicationState extends Application {
         super.onCreate();
 
         //SI prendono gli indirizzi dei bot dalle risorse xml e si aggiungono alla lista "indirizzi"
-
+        /*
         Resources res = getResources();
         String[] bots = res.getStringArray(R.array.botList);
         for (String s: bots) {
@@ -117,8 +117,9 @@ public class ApplicationState extends Application {
         }
 
         logMappaIndirizzi();
+        */
 
-        //new DownloadListBotFile().execute();
+        new DownloadListBotFile().execute();
 
         //Leggiamo o creiamo il wallet
         synchronized (ApplicationState.walletFileLock) {
@@ -472,6 +473,7 @@ public class ApplicationState extends Application {
                 while ((sCurrentLine = br.readLine()) != null) {
                     Log.v("App", "linea corrente file " + sCurrentLine);
                     //indirizzi.add(sCurrentLine);
+                    db.insertData(sCurrentLine, "", "", "");
                     mappaIndirizzi.put(sCurrentLine, BOT_STATE_START);
                 }
 
