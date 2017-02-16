@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * Created by Utente on 15/02/2017.
@@ -27,13 +28,13 @@ public class Database extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-      db.execSQL("create table " +DB_TABLE + " (ADDRESS TEXT PRIMARY KEY, OS TEXT, USERNAME TEXT, USERHOME TEXT )"  );
+        db.execSQL("create table " +DB_TABLE + " (ADDRESS TEXT PRIMARY KEY, OS TEXT, USERNAME TEXT, USERHOME TEXT )"  );
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
-      db.execSQL("DROP TABLE IF EXIST "+DB_TABLE);
-      onCreate(db);
+        db.execSQL("DROP TABLE IF EXIST "+DB_TABLE);
+        onCreate(db);
     }
 
     public boolean insertData (String address, String os, String username, String userhome){
@@ -67,7 +68,7 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db= this.getWritableDatabase();
         ContentValues contentValues= new ContentValues();
         contentValues.put(ATTRIBUTE_ADDRESS,address);
-        contentValues.put(ATTRIBUTE_USERNAME,username);
+        contentValues.put(ATTRIBUTE_USERNAME, username);
         long result=db.update(DB_TABLE, contentValues, "ADDRESS = ?", new String[]{address});
         if (result ==-1)
             return false;
@@ -89,23 +90,24 @@ public class Database extends SQLiteOpenHelper {
 
     public String getOS(String address){
         SQLiteDatabase db= this.getWritableDatabase();
-        Cursor res= db.rawQuery("SELECT OS FROM "+ DB_TABLE+" WHERE ADDRESS = "+address,null);
+        Cursor res= db.rawQuery("SELECT * FROM "+ DB_TABLE+" WHERE ADDRESS = '"+address +"'",null);
         res.moveToNext();
+        Log.d("App", res.getString(1));
         return res.getString(1);
 
     }
-     public String getUsername(String address){
+    public String getUsername(String address){
         SQLiteDatabase db= this.getWritableDatabase();
-        Cursor res= db.rawQuery("SELECT USERNAME FROM "+ DB_TABLE+" WHERE ADDRESS = "+address ,null);
+        Cursor res= db.rawQuery("SELECT * FROM "+ DB_TABLE+" WHERE ADDRESS = '"+address +"'" ,null);
         res.moveToNext();
         return res.getString(2);
     }
     public String getUserhome(String address){
         SQLiteDatabase db= this.getWritableDatabase();
-        Cursor res= db.rawQuery("SELECT USERHOME FROM "+ DB_TABLE+" WHERE ADDRESS = "+address ,null);
+        Cursor res= db.rawQuery("SELECT * FROM "+ DB_TABLE+" WHERE ADDRESS = '"+address +"'" ,null);
         res.moveToNext();
         return res.getString(3);
     }
 
-
 }
+

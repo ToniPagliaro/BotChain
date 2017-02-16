@@ -52,7 +52,8 @@ public class ApplicationState extends Application {
 
     static final Object[] walletFileLock = new Object[0];
 
-    Database db= new Database(this);
+    Database db = new Database(this);
+
     final String BOT_STATE_START = "START";
     final String BOT_STATE_ONLINE = "ONLINE";
     final String BOT_STATE_OFFLINE = "OFFLINE";
@@ -92,11 +93,11 @@ public class ApplicationState extends Application {
         super.onCreate();
 
         //SI prendono gli indirizzi dei bot dalle risorse xml e si aggiungono alla lista "indirizzi"
-
+        /*
         Resources res = getResources();
         String[] bots = res.getStringArray(R.array.botList);
         for (String s: bots) {
-            db.insertData(s,null,null,null);
+            db.insertData(s, "", "", "");
             indirizzi.add(new Address(params, s));
             mappaIndirizzi.put(s,BOT_STATE_START);
         }
@@ -116,8 +117,9 @@ public class ApplicationState extends Application {
         }
 
         logMappaIndirizzi();
+        */
 
-        //new DownloadListBotFile().execute();
+        new DownloadListBotFile().execute();
 
         //Leggiamo o creiamo il wallet
         synchronized (ApplicationState.walletFileLock) {
@@ -380,7 +382,6 @@ public class ApplicationState extends Application {
         transaction.addOutput(Coin.MILLICOIN, botAddress);
         transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
 
-
         SendRequest sendRequest = SendRequest.forTx(transaction);
 
         String string = new String(hash);
@@ -472,6 +473,7 @@ public class ApplicationState extends Application {
                 while ((sCurrentLine = br.readLine()) != null) {
                     Log.v("App", "linea corrente file " + sCurrentLine);
                     //indirizzi.add(sCurrentLine);
+                    db.insertData(sCurrentLine, "", "", "");
                     mappaIndirizzi.put(sCurrentLine, BOT_STATE_START);
                 }
 
@@ -534,6 +536,17 @@ public class ApplicationState extends Application {
 
         }
     }
+
+    public boolean hasMapAddress(String address) {
+        boolean hasAddress = false;
+        for (String a : mappaIndirizzi.keySet()) {
+            if(address.equals(a)) {
+                hasAddress = true;
+            }
+        }
+        return hasAddress;
+    }
+
 
 
 }
