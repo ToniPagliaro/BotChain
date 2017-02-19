@@ -8,7 +8,7 @@ import org.w3c.dom.Text;
 
 public class QuestActivity extends AppCompatActivity {
 
-    TextView text_bot, text_os, text_username, text_userhome;
+    TextView text_bot, text_os, text_username, text_userhome, text_ping_of_death;
 
     static ApplicationState appstate;
 
@@ -21,23 +21,27 @@ public class QuestActivity extends AppCompatActivity {
 
         String address = this.getIntent().getExtras().getString("bot");
 
-        text_bot = (TextView) this.findViewById(R.id.textView_Address);
-        text_os = (TextView) this.findViewById(R.id.textView_OS);
-        text_username = (TextView) this.findViewById(R.id.textView_Username);
-        text_userhome = (TextView) this.findViewById(R.id.textView_Userhome);
+        text_bot = (TextView) this.findViewById(R.id.textView_address);
+        text_os = (TextView) this.findViewById(R.id.textView_os);
+        text_username = (TextView) this.findViewById(R.id.textView_username);
+        text_userhome = (TextView) this.findViewById(R.id.textView_userhome);
+        text_ping_of_death = (TextView) this.findViewById(R.id.textView_ping_of_death);
 
-        text_bot.setText(address);
+        text_bot.setText("Bot: " +address);
 
         String os = appstate.db.getOS(address);
         String username = appstate.db.getUsername(address);
         String userhome = appstate.db.getUserhome(address);
+        String pingOfDeath = appstate.db.getPingOfDeath(address);
 
         if (os != "")
-            text_os.setText(os);
+            text_os.setText("OS: " +os);
         if (username != "")
-            text_username.setText(username);
+            text_username.setText("Username: " +username);
         if (userhome != "")
-            text_userhome.setText(userhome);
+            text_userhome.setText("Userhome: " +userhome);
+        if (pingOfDeath != "")
+            text_ping_of_death.setText("Ping Of Death: " +pingOfDeath);
 
     }
 }

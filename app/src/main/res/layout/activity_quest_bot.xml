@@ -3,12 +3,13 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Bot: "
-        android:id="@+id/textView_Address_Text"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Bot:"
+        android:id="@+id/textView_address"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -17,49 +18,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="S.O.: "
-        android:id="@+id/textView_OS_Text"
-        android:layout_below="@+id/textView_Address_Text"
+        android:text="O.S.:"
+        android:id="@+id/textView_os"
+        android:layout_below="@+id/textView_address"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="-"
-        android:id="@+id/textView_OS"
-        android:layout_alignBottom="@+id/textView_OS_Text"
-        android:layout_toRightOf="@+id/textView_OS_Text"
-        android:layout_toEndOf="@+id/textView_OS_Text" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Username: "
-        android:id="@+id/textView_Username_Text"
-        android:layout_below="@+id/textView_OS_Text"
+        android:id="@+id/textView_username"
+        android:layout_below="@+id/textView_os"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="-"
-        android:id="@+id/textView_Username"
-        android:layout_alignBottom="@+id/textView_Username_Text"
-        android:layout_toRightOf="@+id/textView_Username_Text"
-        android:layout_toEndOf="@+id/textView_Username_Text" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Userhome: "
-        android:id="@+id/textView_Userhome_Text"
-        android:layout_below="@+id/textView_Username_Text"
+        android:id="@+id/textView_userhome"
+        android:layout_below="@+id/textView_username"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -67,20 +48,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="-"
-        android:id="@+id/textView_Userhome"
-        android:layout_alignBottom="@+id/textView_Userhome_Text"
-        android:layout_toEndOf="@+id/textView_Userhome_Text"
-        android:layout_toRightOf="@+id/textView_Userhome_Text" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="-"
-        android:id="@+id/textView_Address"
-        android:layout_alignBottom="@+id/textView_Address_Text"
-        android:layout_toRightOf="@+id/textView_Address_Text"
-        android:layout_toEndOf="@+id/textView_Address_Text" />
-
+        android:text="Ping Of Death: "
+        android:id="@+id/textView_ping_of_death"
+        android:layout_below="@+id/textView_userhome"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>

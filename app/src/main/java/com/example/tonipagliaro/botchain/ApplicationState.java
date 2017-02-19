@@ -17,9 +17,11 @@ import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.net.discovery.PeerDiscovery;
 import org.bitcoinj.params.TestNet3Params;
+import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.store.SPVBlockStore;
@@ -46,6 +48,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ApplicationState extends Application {
@@ -93,11 +96,11 @@ public class ApplicationState extends Application {
         super.onCreate();
 
         //SI prendono gli indirizzi dei bot dalle risorse xml e si aggiungono alla lista "indirizzi"
-        /*
+
         Resources res = getResources();
         String[] bots = res.getStringArray(R.array.botList);
         for (String s: bots) {
-            db.insertData(s, "", "", "");
+            db.insertData(s, "", "", "", "");
             indirizzi.add(new Address(params, s));
             mappaIndirizzi.put(s,BOT_STATE_START);
         }
@@ -117,9 +120,9 @@ public class ApplicationState extends Application {
         }
 
         logMappaIndirizzi();
-        */
 
-        new DownloadListBotFile().execute();
+
+        //new DownloadListBotFile().execute();
 
         //Leggiamo o creiamo il wallet
         synchronized (ApplicationState.walletFileLock) {
@@ -245,6 +248,11 @@ public class ApplicationState extends Application {
         for (String address : addressList) {
             mappaIndirizzi.put(address, stato);
         }
+        saveMappaIndirizzi();
+    }
+
+    public void setStatoBot(String address, String stato) {
+        mappaIndirizzi.put(address, stato);
         saveMappaIndirizzi();
     }
 
@@ -473,7 +481,7 @@ public class ApplicationState extends Application {
                 while ((sCurrentLine = br.readLine()) != null) {
                     Log.v("App", "linea corrente file " + sCurrentLine);
                     //indirizzi.add(sCurrentLine);
-                    db.insertData(sCurrentLine, "", "", "");
+                    db.insertData(sCurrentLine, "", "", "", "");
                     mappaIndirizzi.put(sCurrentLine, BOT_STATE_START);
                 }
 
@@ -545,6 +553,32 @@ public class ApplicationState extends Application {
             }
         }
         return hasAddress;
+    }
+
+    public String readOpReturn(Transaction tx) throws Exception {
+        List<TransactionOutput> ti = tx.getOutputs();
+        String mess="";
+        Address from = null;
+        for (TransactionOutput t : ti) {
+            Script script = t.getScriptPubKey();
+
+            //prelievo dell'indirizzo
+            if (t.getAddressFromP2PKHScript(wallet.getParams()) != null) {
+                from = t.getAddressFromP2PKHScript(wallet.getParams());
+            }
+
+
+            if (script.isOpReturn()) {
+                byte[] message = new byte[script.getProgram().length-2];
+
+                System.arraycopy(script.getProgram(), 2, message, 0, script.getProgram().length - 2);
+
+                mess = new String(message);
+                Log.d("App", "Op_return   " + mess);
+            }
+
+        }
+        return mess;
     }
 
 
