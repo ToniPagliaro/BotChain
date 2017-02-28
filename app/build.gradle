@@ -25,6 +25,8 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'org.bitcoinj:bitcoinj-core:0.14.3'
+    compile 'org.jsoup:jsoup:1.10.2'
+    compile "commons-io:commons-io:+"
 }
 
 
