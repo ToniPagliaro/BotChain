@@ -20,6 +20,7 @@ public class Database extends SQLiteOpenHelper {
     public static final String ATTRIBUTE_USERNAME="USERNAME";
     public static final String ATTRIBUTE_USERHOME="USERHOME";
     public static final String ATTRIBUTE_PING_OF_DEATH = "PING_OF_DEATH";
+    public static final String ATTRIBUTE_BALANCE = "BALANCE";
 
 
     public Database(Context context) {
@@ -29,7 +30,7 @@ public class Database extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table " + DB_TABLE + " (ADDRESS TEXT PRIMARY KEY, OS TEXT, USERNAME TEXT, USERHOME TEXT, PING_OF_DEATH TEXT )");
+        db.execSQL("create table " + DB_TABLE + " (ADDRESS TEXT PRIMARY KEY, OS TEXT, USERNAME TEXT, USERHOME TEXT, PING_OF_DEATH TEXT, BALANCE TEXT )");
     }
 
     @Override
@@ -38,7 +39,7 @@ public class Database extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean insertData (String address, String os, String username, String userhome, String pingOfDeath){
+    public boolean insertData (String address, String os, String username, String userhome, String pingOfDeath, String balance){
         SQLiteDatabase db= this.getWritableDatabase();
         ContentValues contentValues= new ContentValues();
         contentValues.put(ATTRIBUTE_ADDRESS,address);
@@ -46,6 +47,7 @@ public class Database extends SQLiteOpenHelper {
         contentValues.put(ATTRIBUTE_USERNAME,username);
         contentValues.put(ATTRIBUTE_USERHOME,userhome);
         contentValues.put(ATTRIBUTE_PING_OF_DEATH, pingOfDeath);
+        contentValues.put(ATTRIBUTE_BALANCE, balance);
         long result=db.insert(DB_TABLE,null,contentValues);
         if (result ==-1)
             return false;
@@ -103,6 +105,18 @@ public class Database extends SQLiteOpenHelper {
             return true;
     }
 
+    public boolean updateBalance(String address, String balance){
+        SQLiteDatabase db= this.getWritableDatabase();
+        ContentValues contentValues= new ContentValues();
+        contentValues.put(ATTRIBUTE_ADDRESS,address);
+        contentValues.put(ATTRIBUTE_BALANCE,balance);
+        long result=db.update(DB_TABLE, contentValues, "ADDRESS = ?", new String[]{address});
+        if (result ==-1)
+            return false;
+        else
+            return true;
+    }
+
     public String getOS(String address){
         SQLiteDatabase db= this.getWritableDatabase();
         Cursor res= db.rawQuery("SELECT * FROM "+ DB_TABLE+" WHERE ADDRESS = '"+address +"'",null);
@@ -128,6 +142,12 @@ public class Database extends SQLiteOpenHelper {
         Cursor res= db.rawQuery("SELECT * FROM "+ DB_TABLE+" WHERE ADDRESS = '"+address +"'" ,null);
         res.moveToNext();
         return res.getString(4);
+    }
+    public String getBalance(String address){
+        SQLiteDatabase db= this.getWritableDatabase();
+        Cursor res= db.rawQuery("SELECT * FROM "+ DB_TABLE+" WHERE ADDRESS = '"+address +"'" ,null);
+        res.moveToNext();
+        return res.getString(5);
     }
 
 }

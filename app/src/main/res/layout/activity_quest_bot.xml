@@ -53,4 +53,15 @@
         android:layout_below="@+id/textView_userhome"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Balance: "
+        android:id="@+id/textView_balance"
+        android:layout_below="@+id/textView_ping_of_death"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>

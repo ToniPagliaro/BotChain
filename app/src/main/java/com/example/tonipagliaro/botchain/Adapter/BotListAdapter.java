@@ -8,7 +8,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.tonipagliaro.botchain.ApplicationState;
 import com.example.tonipagliaro.botchain.R;
 
 import java.util.List;
@@ -62,7 +61,7 @@ public class BotListAdapter extends ArrayAdapter<String> {
                 imgView.setImageResource(R.drawable.red);
                 break;
             case BOT_STATE_START:
-                imgView.setImageResource(R.drawable.red);
+                imgView.setImageResource(R.drawable.blue);
                 break;
             case BOT_STATE_ONLINE:
                 imgView.setImageResource(R.drawable.green);

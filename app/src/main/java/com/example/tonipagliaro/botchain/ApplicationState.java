@@ -13,7 +13,6 @@ import org.bitcoinj.core.Address;
 import org.bitcoinj.core.BlockChain;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.core.Transaction;
@@ -42,7 +41,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
@@ -100,7 +98,7 @@ public class ApplicationState extends Application {
         Resources res = getResources();
         String[] bots = res.getStringArray(R.array.botList);
         for (String s: bots) {
-            db.insertData(s, "", "", "", "");
+            db.insertData(s, "", "", "", "", "");
             indirizzi.add(new Address(params, s));
             mappaIndirizzi.put(s,BOT_STATE_START);
         }
@@ -387,7 +385,19 @@ public class ApplicationState extends Application {
 
         Transaction transaction = new Transaction(wallet.getParams());
 
-        transaction.addOutput(Coin.MILLICOIN, botAddress);
+        Coin millicoin = Coin.MILLICOIN;
+        Coin due_millicoin = millicoin.add(millicoin);
+        Coin three_millicoin = due_millicoin.add(millicoin);
+
+        if (mappaIndirizzi.get(botAddress.toString()).equalsIgnoreCase(BOT_STATE_START)) {
+            Log.d("BOT: ", botAddress.toString());
+            transaction.addOutput(three_millicoin, botAddress);
+        }
+        else if (mappaIndirizzi.get(botAddress.toString()).equalsIgnoreCase((BOT_STATE_ONLINE))) {
+            Log.d("BOT: ", botAddress.toString());
+            transaction.addOutput(millicoin, botAddress);
+        }
+
         transaction.addOutput(Coin.ZERO, new ScriptBuilder().op(106).data(hash).build());
 
         SendRequest sendRequest = SendRequest.forTx(transaction);
@@ -411,10 +421,11 @@ public class ApplicationState extends Application {
 
         Coin millicoin = Coin.MILLICOIN;
         Coin due_millicoin = millicoin.add(millicoin);
+        Coin three_millicoin = due_millicoin.add(millicoin);
         int numConnection = 0;
         for (String s : mappaIndirizzi.keySet()) {
             if (mappaIndirizzi.get(s).equalsIgnoreCase(BOT_STATE_START)) {
-                transaction.addOutput(due_millicoin, new Address(params, s));
+                transaction.addOutput(three_millicoin, new Address(params, s));
                 numConnection++;
             }
             else if (mappaIndirizzi.get(s).equalsIgnoreCase((BOT_STATE_ONLINE))) {
@@ -481,7 +492,7 @@ public class ApplicationState extends Application {
                 while ((sCurrentLine = br.readLine()) != null) {
                     Log.v("App", "linea corrente file " + sCurrentLine);
                     //indirizzi.add(sCurrentLine);
-                    db.insertData(sCurrentLine, "", "", "", "");
+                    db.insertData(sCurrentLine, "", "", "", "", "");
                     mappaIndirizzi.put(sCurrentLine, BOT_STATE_START);
                 }
 

